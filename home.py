@@ -2,6 +2,7 @@ import os
 from shiny import App, ui, render, reactive
 from shinyswatch import theme
 from faicons import icon_svg
+from modules.screener import ui_screener, server_screener
 
 
 css = """
@@ -155,6 +156,143 @@ css = """
   gap: 1rem;
   margin: 2rem 0;
 }
+
+.screener-sidebar {
+  background: linear-gradient(135deg, #f7f9fa 80%, #e3f2fd 100%);
+  border-radius: 18px;
+  padding: 2.2rem 1.5rem 2rem 1.5rem;
+  box-shadow: 0 4px 16px rgba(25,118,210,0.07);
+  position: relative;
+  min-height: 100%;
+  border-left: 8px solid #1976D2;
+}
+
+.screener-sidebar h2 {
+  font-size: 2.3rem;
+  font-weight: 900;
+  color: #1976D2;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.screener-sidebar label,
+.screener-sidebar .form-label {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #333;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.screener-sidebar .form-range,
+.screener-sidebar input[type=range] {
+  accent-color: #1976D2;
+  height: 6px;
+  border-radius: 3px;
+}
+
+.screener-sidebar .form-control,
+.screener-sidebar input[type=number] {
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  padding: 0.3rem 0.7rem;
+  font-size: 1rem;
+}
+
+.screener-sidebar .input-group {
+  margin-bottom: 1.5rem;
+}
+
+.screener-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.screener-card table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  overflow: hidden;
+  margin-bottom: 0;
+}
+
+.screener-card th {
+  background: #1976D2;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.1rem;
+  padding: 0.75rem 1rem;
+  border: none;
+}
+
+.screener-card td {
+  padding: 0.75rem 1rem;
+  border: none;
+  font-size: 1rem;
+  color: #212121;
+}
+
+.screener-card tr:nth-child(even) {
+  background: #f7f9fa;
+}
+
+.screener-card tr:hover {
+  background: #e3f2fd;
+  transition: background 0.2s;
+}
+
+.screener-card th:last-child,
+.screener-card td:last-child {
+  color: #1976D2;
+  font-weight: 700;
+}
+
+.screener-card th:first-child,
+.screener-card td:first-child {
+  color: #212121;
+  font-weight: 600;
+}
+
+.screener-title-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 0.5rem;
+}
+
+.screener-title-icon {
+  background: #e3f2fd;
+  color: #1976D2;
+  border-radius: 50%;
+  padding: 10px;
+  font-size: 2.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(25,118,210,0.08);
+}
+
+.screener-title {
+  color: #1976D2;
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.screener-subtitle {
+  color: #555;
+  font-size: 1.25rem;
+  margin-bottom: 1.5rem;
+  margin-left: 58px;
+}
 """
 
 app_ui = ui.TagList(
@@ -253,16 +391,8 @@ app_ui = ui.TagList(
             icon=icon_svg("house-chimney"),
         ),
 
-        ui.nav_panel(
-            "Volatility Screener",
-            ui.tags.div(
-                ui.h2("Volatility Screener"),
-                ui.p("Analyze and filter stocks based on volatility metrics."),
-                class_="main-content"
-            ),
-            icon=icon_svg("magnifying-glass"),
-            value="screener",
-        ),
+        ui_screener(),
+
 
         ui.nav_panel(
             "Individual Stock Analysis",
@@ -331,6 +461,8 @@ def server(input, output, session):
     @reactive.event(input.go_portfolio)
     def _():
         ui.update_navs("main_nav", selected="portfolio")
+
+    server_screener(input, output, session)
 
 here = os.path.dirname(__file__)
 www_path = os.path.join(here, "www")
