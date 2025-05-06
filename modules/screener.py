@@ -21,9 +21,12 @@ def ui_screener():
     return ui.nav_panel(
         "Volatility Screener",
         ui.layout_sidebar(
-            # Sidebar: filters
             ui.sidebar(
-                ui.h2("Filters"),
+                ui.tags.div(
+                    icon_svg("magnifying-glass"),
+                    ui.h2("Filters"),
+                    style="display:flex;align-items:center;gap:10px;margin-bottom:1.5rem;"
+                ),
                 ui.input_slider(
                     "scr_time_range", "Time ID Range:",
                     min=min_time, max=max_time,
@@ -33,10 +36,10 @@ def ui_screener():
                     "top_n", "Top N Stocks:",
                     min=1, max=len(stock_cols), value=10, step=1
                 ),
-                width=250,
-                position="left"
+                width=270,
+                position="left",
+                class_="screener-sidebar"
             ),
-            # Main content area: summary table + plot
             ui.tags.div(
                 ui.tags.div(
                     ui.tags.span(icon_svg("magnifying-glass"), class_="screener-title-icon"),
@@ -44,7 +47,7 @@ def ui_screener():
                     class_="screener-title-row"
                 ),
                 ui.tags.div(
-                    "Showing the top N stocks by choosen metrics. Use the filter to adjust N and time range.",
+                    "Showing the top N stocks by average realized volatility. Use the filter to adjust N and time range.",
                     class_="screener-subtitle"
                 ),
                 ui.tags.div(
@@ -97,14 +100,24 @@ def server_screener(input, output, session):
     @output
     @render.plot
     def scr_plot():
-        """
-        Render horizontal bar chart of top N stocks.
-        """
-        df_top = filtered_data()
-        fig, ax = plt.subplots(figsize=(6, 4))
-        ax.barh(df_top['stock_id'].astype(str), df_top['Avg Realized Volatility'])
-        ax.invert_yaxis()
-        ax.set_xlabel('Avg Realized Volatility')
-        ax.set_ylabel('Stock ID')
+        df = filtered_data()
+        fig, ax = plt.subplots(figsize=(10, 4))
+        # Plot line and fill under curve for average realized volatility
+        ax.plot(df['stock_id'].astype(str), df['Avg Realized Volatility'], color='#1f77b4', linewidth=2)
+        ax.fill_between(df['stock_id'].astype(str), df['Avg Realized Volatility'], color='#1f77b4', alpha=0.3)
+        ax.set_xlabel('Stock ID')
+        ax.set_ylabel('Avg Realized Volatility')
+        ax.set_title('Top N Stocks by Avg Realized Volatility', fontsize=12, fontweight='bold')
+        ax.grid(axis='y', linestyle='--', alpha=0.5)
+        for spine in ax.spines.values():
+            spine.set_visible(False)
+        # Show only a subset of x-ticks for readability
+        xticks = df['stock_id'].astype(str)
+        if len(xticks) > 10:
+            step = max(1, len(xticks)//10)
+            ax.set_xticks(xticks[::step])
+            ax.set_xticklabels(xticks[::step], rotation=45, ha='right')
+        else:
+            ax.set_xticklabels(xticks, rotation=0)
         plt.tight_layout()
         return fig

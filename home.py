@@ -3,6 +3,7 @@ from shiny import App, ui, render, reactive
 from shinyswatch import theme
 from faicons import icon_svg
 from modules.screener import ui_screener, server_screener
+from modules.portfolio_tracker import ui_portfolio_tracker, server_portfolio_tracker
 
 
 css = """
@@ -293,6 +294,72 @@ css = """
   margin-bottom: 1.5rem;
   margin-left: 58px;
 }
+
+.portfolio-sidebar {
+  background: linear-gradient(135deg, #f7f9fa 80%, #ede7f6 100%);
+  border-radius: 18px;
+  padding: 2.2rem 1.5rem 2rem 1.5rem;
+  box-shadow: 0 4px 16px rgba(149,117,205,0.07);
+  position: relative;
+  min-height: 100%;
+  border-left: 8px solid #8E24AA;
+}
+
+.portfolio-sidebar h2 {
+  font-size: 2.3rem;
+  font-weight: 900;
+  color: #8E24AA;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.portfolio-sidebar label,
+.portfolio-sidebar .form-label {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #333;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.portfolio-sidebar .form-control,
+.portfolio-sidebar input[type=number] {
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  padding: 0.3rem 0.7rem;
+  font-size: 1rem;
+}
+
+.portfolio-sidebar .input-group {
+  margin-bottom: 1.5rem;
+}
+
+.portfolio-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(149,117,205,0.10);
+  padding: 2rem 2rem 1.5rem 2rem;
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.portfolio-card h2 {
+  color: #8E24AA;
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 1.2rem;
+}
+
+.portfolio-card .shiny-output-plot {
+  margin-bottom: 1.5rem;
+  background: #f3e5f5;
+  border-radius: 12px;
+  padding: 1rem;
+}
 """
 
 app_ui = ui.TagList(
@@ -416,16 +483,7 @@ app_ui = ui.TagList(
             value="compare",
         ),
 
-        ui.nav_panel(
-            "Portfolio Tracker",
-            ui.tags.div(
-                ui.h2("Portfolio Tracker"),
-                ui.p("Monitor your portfolio's overall volatility."),
-                class_="main-content"
-            ),
-            icon=icon_svg("wallet"),
-            value="portfolio",
-        ),
+        ui_portfolio_tracker(),
         
         title=ui.tags.a(
             ui.tags.img(
@@ -463,6 +521,7 @@ def server(input, output, session):
         ui.update_navs("main_nav", selected="portfolio")
 
     server_screener(input, output, session)
+    server_portfolio_tracker(input, output, session)
 
 here = os.path.dirname(__file__)
 www_path = os.path.join(here, "www")
