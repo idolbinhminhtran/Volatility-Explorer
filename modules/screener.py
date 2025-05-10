@@ -19,7 +19,7 @@ stock_cols = [c for c in vol_df.columns if c != 'time_id']
 # UI for the screener panel
 def ui_screener():
     return ui.nav_panel(
-        "Volatility Screener",
+        "Stock Screener",
         ui.layout_sidebar(
             ui.sidebar(
                 ui.tags.div(
@@ -47,7 +47,7 @@ def ui_screener():
                     class_="screener-title-row"
                 ),
                 ui.tags.div(
-                    "Showing the top N stocks by average realized volatility. Use the filter to adjust N and time range.",
+                    "Showing the top N stocks by provided metrics. Use the filter to adjust number of stocks and time range.",
                     class_="screener-subtitle"
                 ),
                 ui.tags.div(
