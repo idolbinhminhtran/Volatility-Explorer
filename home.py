@@ -62,61 +62,71 @@ css = """
 
 /* Card styling */
 .feature-card {
-  background: white;
-  border-radius: 0.5rem;
-  padding: 1.5rem;
-  margin: 1rem 0;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  transition: transform 0.3s ease;
-  display: flex;
-  align-items: center;
-  max-width: 700px;
-  margin-left: auto;
-  margin-right: auto;
+  background: linear-gradient(135deg, #fff 80%, #f3f7fa 100%);
+  border-radius: 1.2rem;
+  box-shadow: 0 4px 24px rgba(25, 118, 210, 0.08);
+  margin: 2.2rem 0;
+  padding: 2.2rem 2rem 2.5rem 2rem;
   position: relative;
-}
-
-.feature-card::before {
-  content: "";
-  display: block;
-  position: absolute;
-  left: 0;
-  top: 1.5rem;
-  bottom: 1.5rem;
-  width: 6px;
-  border-radius: 6px;
-  background: #ff6d00;
-}
-
-.feature-card > div {
   width: 100%;
+  max-width: 600px;
   text-align: center;
+  transition: box-shadow 0.2s, transform 0.2s;
+  border: none;
 }
 
 .feature-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 8px 32px rgba(25, 118, 210, 0.16);
+  transform: translateY(-4px) scale(1.02);
 }
 
-/* Button styling */
-.btn-cta {
-  background: linear-gradient(135deg, var(--primary-dark), var(--primary-light));
-  color: var(--text-light) !important;
-  border: none;
+.feature-card .feature-icon {
+  position: absolute;
+  top: -32px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1976D2;
+  color: #fff;
+  border-radius: 50%;
+  padding: 0.9rem;
+  font-size: 2.2rem;
+  box-shadow: 0 2px 8px rgba(25,118,210,0.12);
+  z-index: 2;
+}
+
+.feature-card strong {
+  display: block;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #1976D2;
+  margin-bottom: 0.5rem;
+  margin-top: 1.2rem;
+}
+
+.feature-card p {
+  color: #444;
+  font-size: 1.08rem;
+  margin-bottom: 1.7rem;
+  margin-top: 0.2rem;
+}
+
+.feature-card .btn-cta {
+  width: 80%;
+  max-width: 320px;
+  margin: 0 auto;
+  display: block;
   font-size: 1.1rem;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.375rem;
-  transition: all 0.3s ease;
-  margin: 0.5rem;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(25,118,210,0.10);
+  letter-spacing: 0.01em;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
 }
 
-.btn-cta:hover {
-  background: linear-gradient(135deg, var(--primary-light), var(--primary-dark));
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+.feature-card .btn-cta:hover {
+  background: linear-gradient(135deg, #1976D2, #534bae);
+  color: #fff !important;
+  box-shadow: 0 4px 16px rgba(25,118,210,0.18);
+  transform: translateY(-2px) scale(1.03);
 }
 
 /* Feature list styling */
@@ -143,10 +153,48 @@ css = """
 /* Welcome section */
 .welcome-section {
   text-align: center;
-  padding: 3rem 1rem;
-  background: linear-gradient(135deg, rgba(26,35,126,0.05), rgba(83,75,174,0.05));
-  border-radius: 1rem;
-  margin-bottom: 2rem;
+  padding: 4rem 2rem 3rem 2rem;
+  background: linear-gradient(135deg, #f7fafc 60%, #e3f0ff 100%);
+  border-radius: 2rem;
+  margin-bottom: 2.5rem;
+  box-shadow: 0 8px 32px rgba(25, 118, 210, 0.10);
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  position: relative;
+}
+
+.welcome-section .welcome-icon {
+  background: #1976D2;
+  color: #fff;
+  border-radius: 50%;
+  padding: 1.2rem;
+  font-size: 3rem;
+  box-shadow: 0 2px 12px rgba(25,118,210,0.13);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.2rem;
+}
+
+.welcome-section .display-4 {
+  font-size: 3.2rem;
+  font-weight: 900;
+  color: #1a237e;
+  margin-bottom: 1.1rem;
+  margin-top: 0.5rem;
+  letter-spacing: -1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.welcome-section .lead {
+  color: #444;
+  font-size: 1.35rem;
+  margin-bottom: 0;
+  font-weight: 500;
 }
 
 /* Action buttons container */
@@ -159,59 +207,66 @@ css = """
 }
 
 .screener-sidebar {
-  background: linear-gradient(135deg, #f7f9fa 80%, #e3f2fd 100%);
-  border-radius: 18px;
-  padding: 2.2rem 1.5rem 2rem 1.5rem;
-  box-shadow: 0 4px 16px rgba(25,118,210,0.07);
+  background: linear-gradient(135deg, #f7faff 80%, #e3f2fd 100%);
+  border-radius: 1.5rem;
+  padding: 2.5rem 1.7rem 2.2rem 1.7rem;
+  box-shadow: 0 6px 24px rgba(25,118,210,0.10);
   position: relative;
   min-height: 100%;
-  border-left: 8px solid #1976D2;
+  border-left: 10px solid #1976D2;
+  margin-top: 1.2rem;
 }
 
 .screener-sidebar h2 {
-  font-size: 2.3rem;
+  font-size: 2.5rem;
   font-weight: 900;
   color: #1976D2;
-  margin-bottom: 2rem;
+  margin-bottom: 2.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  letter-spacing: -1px;
+}
+
+.screener-sidebar label,
+.screener-sidebar .form-label {
+  font-size: 1.18rem;
+  font-weight: 700;
+  color: #1976D2;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.screener-sidebar label,
-.screener-sidebar .form-label {
-  font-size: 1.15rem;
-  font-weight: 600;
-  color: #333;
-  margin-top: 1.5rem;
-  margin-bottom: 0.5rem;
-}
-
 .screener-sidebar .form-range,
 .screener-sidebar input[type=range] {
   accent-color: #1976D2;
-  height: 6px;
-  border-radius: 3px;
+  height: 8px;
+  border-radius: 4px;
 }
 
 .screener-sidebar .form-control,
 .screener-sidebar input[type=number] {
-  border-radius: 8px;
-  border: 1px solid #e0e0e0;
-  padding: 0.3rem 0.7rem;
-  font-size: 1rem;
+  border-radius: 10px;
+  border: 1.5px solid #e0e0e0;
+  padding: 0.4rem 0.8rem;
+  font-size: 1.08rem;
+  background: #f7faff;
 }
 
 .screener-sidebar .input-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.7rem;
 }
 
 .screener-card {
   background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  padding: 1.5rem;
-  margin-bottom: 2rem;
+  border-radius: 18px;
+  box-shadow: 0 6px 32px rgba(25,118,210,0.10);
+  padding: 2.2rem 2.2rem 2rem 2.2rem;
+  margin-bottom: 2.5rem;
+  margin-top: 1.2rem;
 }
 
 .screener-card table {
@@ -219,30 +274,32 @@ css = """
   border-collapse: separate;
   border-spacing: 0;
   background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(25,118,210,0.06);
   overflow: hidden;
   margin-bottom: 0;
+  font-size: 1.13rem;
 }
 
 .screener-card th {
-  background: #1976D2;
+  background: linear-gradient(90deg, #1976D2 80%, #42a5f5 100%);
   color: #fff;
-  font-weight: 700;
-  font-size: 1.1rem;
-  padding: 0.75rem 1rem;
+  font-weight: 800;
+  font-size: 1.18rem;
+  padding: 0.85rem 1.1rem;
   border: none;
+  letter-spacing: 0.5px;
 }
 
 .screener-card td {
-  padding: 0.75rem 1rem;
+  padding: 0.85rem 1.1rem;
   border: none;
-  font-size: 1rem;
+  font-size: 1.08rem;
   color: #212121;
 }
 
 .screener-card tr:nth-child(even) {
-  background: #f7f9fa;
+  background: #f7faff;
 }
 
 .screener-card tr:hover {
@@ -259,40 +316,45 @@ css = """
 .screener-card th:first-child,
 .screener-card td:first-child {
   color: #212121;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .screener-title-row {
   display: flex;
   align-items: center;
-  gap: 18px;
-  margin-bottom: 0.5rem;
+  gap: 22px;
+  margin-bottom: 0.7rem;
+  margin-top: 1.2rem;
+  justify-content: flex-start;
 }
 
 .screener-title-icon {
-  background: #e3f2fd;
-  color: #1976D2;
+  background: linear-gradient(135deg, #1976D2 60%, #42a5f5 100%);
+  color: #fff;
   border-radius: 50%;
-  padding: 10px;
-  font-size: 2.2rem;
+  padding: 18px;
+  font-size: 2.7rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(25,118,210,0.08);
+  box-shadow: 0 4px 16px rgba(25,118,210,0.13);
 }
 
 .screener-title {
   color: #1976D2;
-  font-size: 2.5rem;
-  font-weight: 800;
+  font-size: 2.8rem;
+  font-weight: 900;
   margin: 0;
+  letter-spacing: -1.5px;
+  text-shadow: 0 2px 8px rgba(25,118,210,0.08);
 }
 
 .screener-subtitle {
   color: #555;
-  font-size: 1.25rem;
-  margin-bottom: 1.5rem;
-  margin-left: 58px;
+  font-size: 1.22rem;
+  margin-bottom: 1.7rem;
+  margin-left: 80px;
+  font-weight: 500;
 }
 
 .portfolio-sidebar {
@@ -360,6 +422,26 @@ css = """
   border-radius: 12px;
   padding: 1rem;
 }
+
+.feature-list-container {
+  background: #f9fafe;
+  border-radius: 1.5rem;
+  box-shadow: 0 8px 32px rgba(25, 118, 210, 0.10);
+  padding: 3rem 2.5rem;
+  max-width: 750px;
+  width: 100%;
+  margin: 3rem auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.key-features-title {
+  text-align: center;
+  width: 100%;
+  margin-bottom: 2rem;
+}
 """
 
 app_ui = ui.TagList(
@@ -374,84 +456,79 @@ app_ui = ui.TagList(
             "Home",
             ui.tags.div(
                 ui.tags.div(
-                    ui.h1("Welcome to Volatility Explorer", class_="display-4"),
+                    ui.tags.span(icon_svg("chart-line"), class_="welcome-icon"),
+                    ui.h1("Welcome to Stock Screener", class_="display-4"),
                     ui.p(
-                        "Your comprehensive platform for market risk analysis and portfolio optimization. "
-                        "Powered by real-time data and advanced analytics.",
+                        "Your comprehensive platform for market risk analysis and portfolio optimization. Powered by Optiver dataset and advanced analytics.",
                         class_="lead"
                     ),
                     class_="welcome-section"
                 ),
                 
                 ui.tags.div(
-                    ui.h2("Key Features", class_="text-center mb-4"),
-                    ui.tags.ul(
-                        ui.tags.li(
-                            ui.tags.div(
+                    ui.h2("Key Features", class_="key-features-title"),
+                    ui.tags.div(
+                        ui.tags.ul(
+                            ui.tags.li(
                                 ui.tags.div(
-                                    ui.tags.strong("Volatility Screener", style="color:#ff6d00;"),
-                                    ui.tags.p("Filter and rank stocks by volatility metrics with customizable parameters."),
-                                ),
-                                class_="feature-card"
+                                    ui.tags.span(icon_svg("magnifying-glass"), class_="feature-icon"),
+                                    ui.tags.strong("Stock Screener", style="color:#ff6d00;"),
+                                    ui.tags.p("Filter and rank stocks by metrics with customizable parameters."),
+                                    ui.input_action_button(
+                                        "go_screener",
+                                        ui.tags.span(icon_svg("magnifying-glass"), " Stock Screener"),
+                                        class_="btn btn-cta",
+                                        style="margin-top:1.2rem;"
+                                    ),
+                                    class_="feature-card"
+                                )
                             ),
-                            class_="feature-card"
-                        ),
-                        ui.tags.li(
-                            ui.tags.div(
+                            ui.tags.li(
                                 ui.tags.div(
+                                    ui.tags.span(icon_svg("chart-line"), class_="feature-icon"),
                                     ui.tags.strong("Individual Stock Analysis", style="color:#ff6d00;"),
                                     ui.tags.p("Deep dive into single ticker analysis with comprehensive volatility metrics and charts."),
-                                ),
-                                class_="feature-card"
+                                    ui.input_action_button(
+                                        "go_individual",
+                                        ui.tags.span(icon_svg("chart-line"), " Stock Analysis"),
+                                        class_="btn btn-cta",
+                                        style="margin-top:1.2rem;"
+                                    ),
+                                    class_="feature-card"
+                                )
                             ),
-                            class_="feature-card"
-                        ),
-                        ui.tags.li(
-                            ui.tags.div(
+                            ui.tags.li(
                                 ui.tags.div(
+                                    ui.tags.span(icon_svg("scale-balanced"), class_="feature-icon"),
                                     ui.tags.strong("Stock Comparison", style="color:#ff6d00;"),
                                     ui.tags.p("Compare multiple equities side-by-side with advanced benchmarking tools."),
-                                ),
-                                class_="feature-card"
+                                    ui.input_action_button(
+                                        "go_compare",
+                                        ui.tags.span(icon_svg("scale-balanced"), " Compare Stocks"),
+                                        class_="btn btn-cta",
+                                        style="margin-top:1.2rem;"
+                                    ),
+                                    class_="feature-card"
+                                )
                             ),
-                            class_="feature-card"
-                        ),
-                        ui.tags.li(
-                            ui.tags.div(
+                            ui.tags.li(
                                 ui.tags.div(
+                                    ui.tags.span(icon_svg("wallet"), class_="feature-icon"),
                                     ui.tags.strong("Portfolio Tracker", style="color:#ff6d00;"),
                                     ui.tags.p("Monitor and optimize your portfolio's risk profile in real-time."),
-                                ),
-                                class_="feature-card"
+                                    ui.input_action_button(
+                                        "go_portfolio",
+                                        ui.tags.span(icon_svg("wallet"), " Portfolio Tracker"),
+                                        class_="btn btn-cta",
+                                        style="margin-top:1.2rem;"
+                                    ),
+                                    class_="feature-card"
+                                )
                             ),
-                            class_="feature-card"
+                            class_="feature-list"
                         ),
-                        class_="feature-list"
+                        class_="feature-list-container"
                     ),
-                ),
-
-                ui.tags.div(
-                    ui.input_action_button(
-                        "go_screener", 
-                        ui.tags.span(icon_svg("magnifying-glass"), " Volatility Screener"), 
-                        class_="btn-cta"
-                    ),
-                    ui.input_action_button(
-                        "go_individual", 
-                        ui.tags.span(icon_svg("chart-line"), " Stock Analysis"), 
-                        class_="btn-cta"
-                    ),
-                    ui.input_action_button(
-                        "go_compare", 
-                        ui.tags.span(icon_svg("scale-balanced"), " Compare Stocks"), 
-                        class_="btn-cta"
-                    ),
-                    ui.input_action_button(
-                        "go_portfolio", 
-                        ui.tags.span(icon_svg("wallet"), " Portfolio Tracker"), 
-                        class_="btn-cta"
-                    ),
-                    class_="action-buttons"
                 ),
                 class_="main-content"
             ),
@@ -491,7 +568,7 @@ app_ui = ui.TagList(
                 height="30px",
                 style="margin-right:8px;"
             ),
-            "Volatility Explorer",
+            "Stock Screener",
             style="display:flex;align-items:center;color:white;text-decoration:none;"
         ),
         theme=theme.cosmo,
