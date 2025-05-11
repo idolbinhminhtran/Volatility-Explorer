@@ -3,6 +3,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from shiny import ui, render, reactive
 from faicons import icon_svg
+from dotenv import load_dotenv
+import openai
 
 # ——————————————————————————————————————————————————————————————————————————
 # Load your vol_df and define stock_cols here
@@ -12,6 +14,10 @@ VOL_PATH = os.path.join(_project_dir, 'data', 'vol_df.csv')
 vol_df = pd.read_csv(VOL_PATH)
 stock_cols = [c for c in vol_df.columns if c != 'time_id']
 
+# Load environment variables from .env
+load_dotenv()
+api_key = os.getenv("OPENAI_API_KEY")
+client = openai.OpenAI(api_key=api_key)
 
 def ui_portfolio_tracker():
     return ui.nav_panel(
@@ -58,6 +64,10 @@ def ui_portfolio_tracker():
                 ui.tags.div(
                     ui.output_data_frame("pt_table"),
                     class_="portfolio-card"
+                ),
+                ui.tags.div(
+                    ui.output_ui("pt_ai_suggestion"),
+                    style="margin-top:1.5rem;"
                 ),
                 class_="main-content"
             )
@@ -150,3 +160,31 @@ def server_portfolio_tracker(input, output, session):
     def pt_table():
         df = df_portfolio()
         return df.rename(columns={'stock_id': 'Stock ID', 'volume': 'Volume', 'price': 'Price', 'value': 'Value', 'proportion': 'Proportion'})
+
+    @output
+    @render.ui
+    def pt_ai_suggestion():
+        df = df_portfolio()
+        if df is None or df.empty:
+            return "No portfolio to analyze."
+        # Format the table for the prompt
+        prompt = f"""
+You are a financial analyst AI. Given the following portfolio table, provide a brief evaluation, analysis, and suggestion for the user. Be concise and use the data provided only.\n\n{df.to_string(index=False)}\n\nRespond with your evaluation, analysis, and suggestion.\n"""
+        try:
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=180,
+                temperature=0.3
+            )
+            suggestion = response.choices[0].message.content.strip()
+            # Add bold and newlines for the three key words
+            suggestion = suggestion.replace('Evaluation:', '<b>Evaluation:</b><br>')
+            suggestion = suggestion.replace('Analysis:', '<br><b>Analysis:</b><br>')
+            suggestion = suggestion.replace('Suggestion:', '<br><b>Suggestion:</b><br>')
+            return ui.tags.div([
+                ui.tags.h4("Application Suggestion", style="color:#8E24AA;font-weight:700;margin-bottom:0.7rem;margin-top:0.5rem;"),
+                ui.tags.p(ui.HTML(suggestion), style="font-size:1.12rem;color:#222;background:#f3e5f5;padding:1rem 1.2rem;border-radius:1rem;")
+            ])
+        except Exception as e:
+            return f"Error getting suggestion: {e}"
