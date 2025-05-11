@@ -3,6 +3,18 @@ from shiny import ui, render, reactive
 import pandas as pd
 from modules.screener import vol_df, stock_cols
 from faicons import icon_svg
+import os
+
+
+# Load metrics_summary.csv for metrics display
+_project_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+METRICS_PATH = os.path.join(_project_dir, 'data', 'metrics_summary.csv')
+metrics_df = pd.read_csv(METRICS_PATH)
+metrics_df['stock_id'] = metrics_df['stock_id'].astype(str)
+metric_choices = [c for c in metrics_df.columns if c not in ('stock_id', 'realized_volatility')]
+metric_labels = {c: c.replace('_', ' ').title() for c in metric_choices}
+if 'avg_bid_size1' in metric_labels:
+    metric_labels['avg_bid_size1'] = 'Avg Bid Size1'
 
 
 # Define the UI for Individual Stock Analysis
@@ -13,11 +25,11 @@ def ui_individual_stock(stock_ids):
             ui.tags.div(
                 ui.tags.div(
                     icon_svg("chart-line"),
-                    style="display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1976D2 60%,#42a5f5 100%);color:#fff;border-radius:50%;padding:1.1rem;font-size:2.2rem;box-shadow:0 2px 8px rgba(25,118,210,0.12);width:3.5rem;height:3.5rem;margin:0 auto 1.2rem auto;"
+                    style="display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#ff6d00 60%,#ffb300 100%);color:#fff;border-radius:50%;padding:1.1rem;font-size:2.2rem;box-shadow:0 2px 8px rgba(255,109,0,0.12);width:3.5rem;height:3.5rem;margin:0 auto 1.2rem auto;"
                 ),
-                ui.h2("Individual Stock", style="color:#1976D2;font-weight:900;text-align:center;margin-bottom:0.5rem;margin-top:0;letter-spacing:-1px;"),
+                ui.h2("Individual Stock", style="color:#ff6d00;font-weight:900;text-align:center;margin-bottom:0.5rem;margin-top:0;letter-spacing:-1px;"),
                 ui.p("Detailed volatility analysis.", style="text-align:center;color:#444;font-size:1.08rem;margin-bottom:1.5rem;margin-top:0;"),
-                ui.h4("Select Stock", style="margin-bottom:1.2rem;color:#1976D2;font-weight:700;text-align:left;"),
+                ui.h4("Select Stock", style="margin-bottom:1.2rem;color:#ff6d00;font-weight:700;text-align:left;"),
                 ui.input_select("stock_id", "Stock ID", stock_ids),
                 ui.tags.div(
                     ui.output_ui("stock_analysis_output"),
@@ -29,9 +41,16 @@ def ui_individual_stock(stock_ids):
             width=320
         ),
         ui.tags.div(
-            ui.tags.div(
-            ),
+            ui.h3("Volatility Over Time", style="margin-bottom:1.2rem;color:#ff6d00;font-weight:800;"),
             ui.output_plot("stock_volatility_plot"),
+            ui.tags.div(
+                ui.h4("Metrics Summary", style="color:#ff6d00;font-weight:700;margin-bottom:0.7rem;margin-top:2rem;"),
+                ui.tags.div(
+                    ui.output_data_frame("stock_metrics_table"),
+                    class_="metrics-comparison-table"
+                ),
+                class_="metrics-comparison-card"
+            ),
             class_="main-card"
         ),
         class_="analysis-layout"
@@ -82,3 +101,21 @@ def server_individual_stock(input, output, session):
             return fig
         else:
             return None  # Return None if no data is available
+
+    @output
+    @render.data_frame
+    def stock_metrics_table():
+        stock_id = input.stock_id()
+        if not stock_id:
+            return pd.DataFrame()
+        row = metrics_df[metrics_df['stock_id'] == str(stock_id)]
+        if row.empty:
+            return pd.DataFrame()
+        df = row[metric_choices].T
+        df.index = [metric_labels.get(idx, idx) for idx in df.index]
+        df = df.reset_index().rename(columns={'index': 'Metric'})
+        # Rename the value column to 'Value' (it will be the second column)
+        if df.shape[1] > 1:
+            df.columns.values[1] = 'Value'
+            df['Value'] = df['Value'].round(6)
+        return df
