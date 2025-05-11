@@ -19,19 +19,22 @@ def ui_portfolio_tracker():
         ui.layout_sidebar(
             ui.sidebar(
                 ui.tags.div(
-                    icon_svg("wallet"),
-                    ui.h2("Portfolio Builder"),
-                    style="display:flex;align-items:center;gap:10px;margin-bottom:1.5rem;"
+                    ui.tags.div(
+                        icon_svg("wallet"),
+                        style="display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#8E24AA 60%,#ce93d8 100%);color:#fff;border-radius:50%;padding:1.1rem;font-size:2.2rem;box-shadow:0 2px 8px rgba(149,117,205,0.12);width:3.5rem;height:3.5rem;margin:0 auto 1.2rem auto;"
+                    ),
+                    ui.h2("Portfolio Builder", style="color:#8E24AA;font-weight:900;text-align:center;margin-bottom:0.5rem;margin-top:0;letter-spacing:-1px;"),
+                    ui.p("Add stocks and track your portfolio.", style="text-align:center;color:#444;font-size:1.08rem;margin-bottom:1.5rem;margin-top:0;"),
+                    ui.h4("Add Stock", style="margin-bottom:1.2rem;color:#8E24AA;font-weight:700;text-align:left;"),
+                    ui.input_select("pt_stock", "Stock ID:", choices=[str(s) for s in stock_cols]),
+                    ui.input_numeric("pt_volume", "Volume:", value=1, min=0),
+                    ui.input_numeric("pt_price", "Price per share:", value=1.0, min=0.0, step=0.01),
+                    ui.input_action_button("pt_add", "Add to Portfolio"),
+                    ui.input_action_button("pt_clear", "Clear Portfolio", class_="btn-danger", style="margin-top:1rem;"),
+                    class_="sidebar-card"
                 ),
-                ui.input_select("pt_stock", "Stock ID:", choices=[str(s) for s in stock_cols]),
-                ui.input_numeric("pt_volume", "Volume:", value=1, min=0),
-                ui.input_numeric("pt_price", "Price per share:", value=1.0, min=0.0, step=0.01),
-                ui.input_action_button("pt_add", "Add to Portfolio"),
-                ui.input_action_button("pt_clear", "Clear Portfolio", class_="btn-danger"),
-                ui.tags.hr(),
-                width=270,
-                position="left",
-                class_="portfolio-sidebar"
+                width=320,
+                position="left"
             ),
             ui.tags.div(
                 ui.tags.div(
@@ -107,7 +110,7 @@ def server_portfolio_tracker(input, output, session):
             ax.text(0.5, 0.5, "No holdings", ha='center', va='center')
         else:
             ax.pie(df['value'], labels=df['stock_id'].astype(str), autopct='%1.1f%%', startangle=90)
-            ax.set_title('Value Proportion')
+            ax.set_title('Value Proportion', color='#8E24AA')
         return fig
 
     @output
@@ -133,7 +136,7 @@ def server_portfolio_tracker(input, output, session):
         ax.fill_between(ts_df['time_id'], ts_df['portfolio_vol'], color='#8E24AA', alpha=0.2)
         ax.set_xlabel('Time ID')
         ax.set_ylabel('Portfolio Volatility')
-        ax.set_title('Portfolio Volatility Over Time', fontsize=12, fontweight='bold')
+        ax.set_title('Portfolio Volatility Over Time', fontsize=12, fontweight='bold', color='#8E24AA')
         ax.grid(axis='y', linestyle='--', alpha=0.5)
         for spine in ax.spines.values():
             spine.set_visible(False)
