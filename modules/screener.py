@@ -16,7 +16,8 @@ metrics_df['stock_id'] = metrics_df['stock_id'].astype(int)
 metric_choices = [c for c in metrics_df.columns if c not in ('stock_id', 'realized_volatility')]
 # Human-readable labels for metrics
 metric_labels = {c: c.replace('_', ' ').title() for c in metric_choices}
-
+if 'avg_bid_size1' in metric_labels:
+    metric_labels['avg_bid_size1'] = 'Avg Bid Size1'
 # Add 'Volatility' to metric_labels for selection
 metric_labels_with_vol = {'volatility': 'Volatility', **metric_labels}
 
@@ -32,35 +33,40 @@ def ui_screener():
         ui.layout_sidebar(
             ui.sidebar(
                 ui.tags.div(
-                    icon_svg("magnifying-glass"),
-                    ui.h2("Filters"),
-                    style="display:flex;align-items:center;gap:10px;margin-bottom:1.5rem;"
-                ),
-                ui.input_slider(
-                    "vol_time_range", "Time ID Range (for Volatility):",
-                    min=min_time, max=max_time,
-                    value=(min_time, max_time), step=1
-                ),
-                # multi‐select for metrics
-                ui.accordion(
-                    ui.accordion_panel(
-                        "Select metrics:",
-                        ui.input_checkbox_group(
-                            "scr_metrics", "",
-                            choices=metric_labels_with_vol,
-                            selected=metric_choices[:2]
-                        ),
-                        class_="metric-checkbox-group metric-select-box"
+                    ui.tags.div(
+                        icon_svg("magnifying-glass"),
+                        style="display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1976D2 60%,#42a5f5 100%);color:#fff;border-radius:50%;padding:1.1rem;font-size:2.2rem;box-shadow:0 2px 8px rgba(25,118,210,0.12);width:3.5rem;height:3.5rem;margin:0 auto 1.2rem auto;"
                     ),
-                    class_="metric-accordion"
+                    ui.h2("Stock Screener", style="color:#1976D2;font-weight:900;text-align:center;margin-bottom:0.5rem;margin-top:0;letter-spacing:-1px;"),
+                    ui.p("Filter and rank stocks by metrics.", style="text-align:center;color:#444;font-size:1.08rem;margin-bottom:1.5rem;margin-top:0;"),
+                    ui.h4("Time Range", style="margin-bottom:1.2rem;color:#1976D2;font-weight:700;text-align:left;"),
+                    ui.input_slider(
+                        "vol_time_range", "Time ID Range (for Volatility):",
+                        min=min_time, max=max_time,
+                        value=(min_time, max_time), step=1
+                    ),
+                    ui.h4("Metrics", style="margin-bottom:1.2rem;color:#1976D2;font-weight:700;text-align:left;margin-top:2rem;"),
+                    ui.accordion(
+                        ui.accordion_panel(
+                            "Select metrics:",
+                            ui.input_checkbox_group(
+                                "scr_metrics", "",
+                                choices=metric_labels_with_vol,
+                                selected=metric_choices[:2]
+                            ),
+                            class_="metric-checkbox-group metric-select-box"
+                        ),
+                        class_="metric-accordion"
+                    ),
+                    ui.h4("Top N", style="margin-bottom:1.2rem;color:#1976D2;font-weight:700;text-align:left;margin-top:2rem;"),
+                    ui.input_slider(
+                        "top_n", "Top N Stocks:",
+                        min=1, max=len(metrics_df), value=10, step=1
+                    ),
+                    class_="sidebar-card"
                 ),
-                ui.input_slider(
-                    "top_n", "Top N Stocks:",
-                    min=1, max=len(metrics_df), value=10, step=1
-                ),
-                width=270,
-                position="left",
-                class_="screener-sidebar"
+                width=320,
+                position="left"
             ),
             ui.tags.div(
                 ui.tags.div(
@@ -133,7 +139,8 @@ def server_screener(input, output, session):
     @output
     @render.data_frame
     def scr_table():
-        return top_metrics()
+        df = top_metrics()
+        return df
 
     @output
     @render.plot
@@ -149,7 +156,7 @@ def server_screener(input, output, session):
         ax.bar(x, y, alpha=0.75)
         ax.set_xlabel('Stock ID')
         ax.set_ylabel(df.columns[1])
-        ax.set_title(f"Top {len(df)} Stocks by {df.columns[1]}")
+        ax.set_title(f"Top {len(df)} Stocks by {df.columns[1]}", color='#1976D2')
         ax.tick_params(axis='x', rotation=45)
         ax.grid(axis='y', linestyle='--', alpha=0.4)
         plt.tight_layout()
