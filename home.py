@@ -307,10 +307,10 @@ css = """
   transition: background 0.2s;
 }
 
-.screener-card th:last-child,
-.screener-card td:last-child {
-  color: #1976D2;
-  font-weight: 700;
+.screener-card th:last-child {
+  color: #fff;
+  font-weight: 800;
+  text-shadow: 0 1px 4px rgba(25,118,210,0.10);
 }
 
 .screener-card th:first-child,
@@ -359,51 +359,58 @@ css = """
 
 .portfolio-sidebar {
   background: linear-gradient(135deg, #f7f9fa 80%, #ede7f6 100%);
-  border-radius: 18px;
-  padding: 2.2rem 1.5rem 2rem 1.5rem;
-  box-shadow: 0 4px 16px rgba(149,117,205,0.07);
+  border-radius: 1.5rem;
+  padding: 2.5rem 1.7rem 2.2rem 1.7rem;
+  box-shadow: 0 6px 24px rgba(149,117,205,0.10);
   position: relative;
   min-height: 100%;
-  border-left: 8px solid #8E24AA;
+  border-left: 10px solid #8E24AA;
+  margin-top: 1.2rem;
 }
 
 .portfolio-sidebar h2 {
-  font-size: 2.3rem;
+  font-size: 2.5rem;
   font-weight: 900;
   color: #8E24AA;
-  margin-bottom: 2rem;
+  margin-bottom: 2.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  letter-spacing: -1px;
+}
+
+.portfolio-sidebar label,
+.portfolio-sidebar .form-label {
+  font-size: 1.18rem;
+  font-weight: 700;
+  color: #8E24AA;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.portfolio-sidebar label,
-.portfolio-sidebar .form-label {
-  font-size: 1.15rem;
-  font-weight: 600;
-  color: #333;
-  margin-top: 1.5rem;
-  margin-bottom: 0.5rem;
-}
-
 .portfolio-sidebar .form-control,
 .portfolio-sidebar input[type=number] {
-  border-radius: 8px;
-  border: 1px solid #e0e0e0;
-  padding: 0.3rem 0.7rem;
-  font-size: 1rem;
+  border-radius: 10px;
+  border: 1.5px solid #e0e0e0;
+  padding: 0.4rem 0.8rem;
+  font-size: 1.08rem;
+  background: #f7f9fa;
 }
 
 .portfolio-sidebar .input-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.7rem;
 }
 
 .portfolio-card {
   background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 2px 12px rgba(149,117,205,0.10);
-  padding: 2rem 2rem 1.5rem 2rem;
-  margin-bottom: 2rem;
+  border-radius: 18px;
+  box-shadow: 0 6px 32px rgba(149,117,205,0.13);
+  padding: 2.2rem 2.2rem 2rem 2.2rem;
+  margin-bottom: 2.5rem;
+  margin-top: 1.2rem;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -411,16 +418,71 @@ css = """
 
 .portfolio-card h2 {
   color: #8E24AA;
-  font-size: 2rem;
-  font-weight: 800;
+  font-size: 2.2rem;
+  font-weight: 900;
   margin-bottom: 1.2rem;
+  letter-spacing: -1px;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
 }
 
 .portfolio-card .shiny-output-plot {
   margin-bottom: 1.5rem;
   background: #f3e5f5;
-  border-radius: 12px;
-  padding: 1rem;
+  border-radius: 14px;
+  padding: 1.2rem;
+  box-shadow: 0 2px 8px rgba(149,117,205,0.10);
+}
+
+.portfolio-card table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(149,117,205,0.08);
+  overflow: hidden;
+  margin-bottom: 0;
+  font-size: 1.13rem;
+}
+
+.portfolio-card th {
+  background: linear-gradient(90deg, #8E24AA 80%, #ce93d8 100%);
+  color: #fff;
+  font-weight: 800;
+  font-size: 1.18rem;
+  padding: 0.85rem 1.1rem;
+  border: none;
+  letter-spacing: 0.5px;
+}
+
+.portfolio-card td {
+  padding: 0.85rem 1.1rem;
+  border: none;
+  font-size: 1.08rem;
+  color: #212121;
+}
+
+.portfolio-card tr:nth-child(even) {
+  background: #f7f9fa;
+}
+
+.portfolio-card tr:hover {
+  background: #ede7f6;
+  transition: background 0.2s;
+}
+
+.portfolio-card th:last-child {
+  color: #fff;
+  font-weight: 800;
+  text-shadow: 0 1px 4px rgba(149,117,205,0.10);
+}
+
+.portfolio-card th:first-child,
+.portfolio-card td:first-child {
+  color: #8E24AA;
+  font-weight: 700;
 }
 
 .feature-list-container {
