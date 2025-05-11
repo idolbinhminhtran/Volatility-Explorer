@@ -29,12 +29,6 @@ def ui_portfolio_tracker():
                 ui.input_action_button("pt_add", "Add to Portfolio"),
                 ui.input_action_button("pt_clear", "Clear Portfolio", class_="btn-danger"),
                 ui.tags.hr(),
-                ui.tags.div(
-                    icon_svg("chart-line"),
-                    ui.h2("Time Series Viewer"),
-                    style="display:flex;align-items:center;gap:10px;margin:1.5rem 0 1rem 0;"
-                ),
-                ui.input_select("pt_ts_stock", "Select Stock to Plot:", choices=[str(s) for s in stock_cols]),
                 width=270,
                 position="left",
                 class_="portfolio-sidebar"
@@ -119,15 +113,27 @@ def server_portfolio_tracker(input, output, session):
     @output
     @render.plot
     def pt_ts_plot():
-        stock = int(input.pt_ts_stock())
-        ts_df = vol_df[['time_id', str(stock)]].rename(columns={str(stock): 'rv'})
-        ts_df = ts_df.sort_values('time_id')
+        df = df_portfolio()
+        if df.empty:
+            fig, ax = plt.subplots(figsize=(10, 4))
+            ax.text(0.5, 0.5, "No portfolio holdings", ha='center', va='center')
+            ax.axis('off')
+            return fig
+        # Portfolio weights by stock_id (as string)
+        weights = df.set_index('stock_id')['proportion'].to_dict()
+        # Subset vol_df to only stocks in portfolio
+        stocks_in_portfolio = [str(s) for s in df['stock_id']]
+        ts_df = vol_df[['time_id'] + stocks_in_portfolio].copy()
+        # Compute weighted sum for each time_id
+        for s in stocks_in_portfolio:
+            ts_df[s] = ts_df[s] * weights[int(s)]
+        ts_df['portfolio_vol'] = ts_df[stocks_in_portfolio].sum(axis=1)
         fig, ax = plt.subplots(figsize=(10, 4))
-        ax.plot(ts_df['time_id'], ts_df['rv'], color='#1f77b4', linewidth=2)
-        ax.fill_between(ts_df['time_id'], ts_df['rv'], color='#1f77b4', alpha=0.3)
+        ax.plot(ts_df['time_id'], ts_df['portfolio_vol'], color='#8E24AA', linewidth=2)
+        ax.fill_between(ts_df['time_id'], ts_df['portfolio_vol'], color='#8E24AA', alpha=0.2)
         ax.set_xlabel('Time ID')
-        ax.set_ylabel('Realized Volatility')
-        ax.set_title(f'Stock {stock} Volatility Over Time', fontsize=12, fontweight='bold')
+        ax.set_ylabel('Portfolio Volatility')
+        ax.set_title('Portfolio Volatility Over Time', fontsize=12, fontweight='bold')
         ax.grid(axis='y', linestyle='--', alpha=0.5)
         for spine in ax.spines.values():
             spine.set_visible(False)
