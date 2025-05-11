@@ -4,6 +4,8 @@ import pandas as pd
 from modules.screener import vol_df, stock_cols
 from faicons import icon_svg
 import os
+from dotenv import load_dotenv
+import openai
 
 
 # Load metrics_summary.csv for metrics display
@@ -15,6 +17,12 @@ metric_choices = [c for c in metrics_df.columns if c not in ('stock_id', 'realiz
 metric_labels = {c: c.replace('_', ' ').title() for c in metric_choices}
 if 'avg_bid_size1' in metric_labels:
     metric_labels['avg_bid_size1'] = 'Avg Bid Size1'
+
+
+# Load environment variables from .env
+load_dotenv()
+api_key = os.getenv("OPENAI_API_KEY")
+client = openai.OpenAI(api_key=api_key)
 
 
 # Define the UI for Individual Stock Analysis
@@ -48,6 +56,10 @@ def ui_individual_stock(stock_ids):
                 ui.tags.div(
                     ui.output_data_frame("stock_metrics_table"),
                     class_="metrics-comparison-table"
+                ),
+                ui.tags.div(
+                    ui.output_ui("stock_ai_suggestion"),
+                    style="margin-top:1.5rem;"
                 ),
                 class_="metrics-comparison-card"
             ),
@@ -102,9 +114,8 @@ def server_individual_stock(input, output, session):
         else:
             return None  # Return None if no data is available
 
-    @output
-    @render.data_frame
-    def stock_metrics_table():
+    @reactive.Calc
+    def stock_metrics_df():
         stock_id = input.stock_id()
         if not stock_id:
             return pd.DataFrame()
@@ -119,3 +130,33 @@ def server_individual_stock(input, output, session):
             df.columns.values[1] = 'Value'
             df['Value'] = df['Value'].round(6)
         return df
+
+    @output
+    @render.data_frame
+    def stock_metrics_table():
+        return stock_metrics_df()
+
+    @output
+    @render.ui
+    def stock_ai_suggestion():
+        stock_id = input.stock_id()
+        df = stock_metrics_df()
+        if not stock_id or df is None or df.empty:
+            return "No metrics to analyze."
+        # Format the table for the prompt
+        prompt = f"""
+You are a financial analyst AI. Given the following metrics for Stock {stock_id}, provide a brief evaluation and a suggestion on whether to purchase. Be concise and use the data provided only.\n\n{df.to_string(index=False)}\n\nRespond with your evaluation and purchase suggestion.\n"""
+        try:
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=120,
+                temperature=0.3
+            )
+            suggestion = response.choices[0].message.content.strip()
+            return ui.tags.div([
+                ui.tags.h4("Application Suggestion", style="color:#ff6d00;font-weight:700;margin-bottom:0.7rem;margin-top:0.5rem;"),
+                ui.tags.p(suggestion, style="font-size:1.12rem;color:#222;background:#fff3e0;padding:1rem 1.2rem;border-radius:1rem;")
+            ])
+        except Exception as e:
+            return f"Error getting suggestion: {e}"
