@@ -4,10 +4,15 @@ import matplotlib.pyplot as plt
 from shiny import ui, render, reactive
 from faicons import icon_svg
 
-# Load stock list and data from screener
-from .screener import stock_cols, vol_df
+# ——————————————————————————————————————————————————————————————————————————
+# Load your vol_df and define stock_cols here
+# ——————————————————————————————————————————————————————————————————————————
+_project_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+VOL_PATH = os.path.join(_project_dir, 'data', 'vol_df.csv')
+vol_df = pd.read_csv(VOL_PATH)
+stock_cols = [c for c in vol_df.columns if c != 'time_id']
 
-# UI for the portfolio tracker panel
+
 def ui_portfolio_tracker():
     return ui.nav_panel(
         "Portfolio Tracker",
@@ -64,7 +69,7 @@ def ui_portfolio_tracker():
         value="portfolio"
     )
 
-# Server logic for portfolio tracker
+
 def server_portfolio_tracker(input, output, session):
     portfolio = reactive.Value([])
 
@@ -114,22 +119,18 @@ def server_portfolio_tracker(input, output, session):
     @output
     @render.plot
     def pt_ts_plot():
-        # Styled area chart of volatility over time for selected stock
         stock = int(input.pt_ts_stock())
         ts_df = vol_df[['time_id', str(stock)]].rename(columns={str(stock): 'rv'})
         ts_df = ts_df.sort_values('time_id')
         fig, ax = plt.subplots(figsize=(10, 4))
-        # Plot line and fill under curve
         ax.plot(ts_df['time_id'], ts_df['rv'], color='#1f77b4', linewidth=2)
         ax.fill_between(ts_df['time_id'], ts_df['rv'], color='#1f77b4', alpha=0.3)
-        # Style axes
         ax.set_xlabel('Time ID')
         ax.set_ylabel('Realized Volatility')
         ax.set_title(f'Stock {stock} Volatility Over Time', fontsize=12, fontweight='bold')
         ax.grid(axis='y', linestyle='--', alpha=0.5)
         for spine in ax.spines.values():
             spine.set_visible(False)
-        # Rotate x labels for readability, show sparse ticks
         ax.set_xticks(ts_df['time_id'][::len(ts_df)//10 or 1])
         ax.set_xticklabels(ts_df['time_id'][::len(ts_df)//10 or 1], rotation=45, ha='right')
         plt.tight_layout()

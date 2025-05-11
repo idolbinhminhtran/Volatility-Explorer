@@ -504,6 +504,115 @@ css = """
   width: 100%;
   margin-bottom: 2rem;
 }
+
+.metric-select-box {
+  border: 2px solid #90caf9 !important;
+  border-radius: 12px !important;
+  background: #f7faff !important;
+  font-size: 1.13rem !important;
+  padding: 0.5rem 0.7rem !important;
+  min-height: 120px !important;
+  box-shadow: 0 2px 8px rgba(25,118,210,0.07);
+  margin-bottom: 1.2rem;
+}
+.metric-select-box option {
+  padding: 0.4rem 0.7rem;
+  font-size: 1.08rem;
+}
+
+.metric-checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: #1976D2;
+  margin-bottom: 0.4rem;
+  border-radius: 6px;
+  padding: 0.15rem 0.4rem 0.15rem 0.15rem;
+  background: none;
+  transition: background 0.2s;
+  cursor: pointer;
+}
+.metric-checkbox-group input[type="checkbox"] {
+  width: 1.05em;
+  height: 1.05em;
+  accent-color: #1976D2;
+  border-radius: 4px;
+  margin-right: 0.4em;
+  border: 1.5px solid #90caf9;
+  box-shadow: 0 1px 4px rgba(25,118,210,0.08);
+  transition: border 0.2s;
+}
+.metric-checkbox-group input[type="checkbox"]:checked {
+  border: 1.5px solid #1976D2;
+}
+.metric-checkbox-group {
+  padding-top: 0.2rem;
+  padding-bottom: 0.2rem;
+}
+.metric-checkbox-group .form-label {
+  font-size: 1.08rem;
+  font-weight: 800;
+  color: #1976D2;
+  margin-bottom: 0.7rem;
+  margin-top: 0.1rem;
+  letter-spacing: -0.5px;
+}
+
+/* Always show sort caret in sortable table headers */
+.screener-card th.sortable::after,
+.portfolio-card th.sortable::after {
+  content: '▼';
+  opacity: 1;
+  color: #222;
+  margin-left: 0.3em;
+  font-size: 1em;
+  vertical-align: middle;
+}
+
+.metric-accordion {
+  border: 1.5px solid #e3f0fa;
+  border-radius: 1.1rem;
+  box-shadow: 0 2px 8px rgba(25,118,210,0.04);
+  background: #f7faff;
+  margin-bottom: 1.2rem;
+  overflow: hidden;
+  padding: 0;
+}
+.metric-accordion .accordion-header {
+  border: none;
+  border-top-left-radius: 1.1rem;
+  border-top-right-radius: 1.1rem;
+  background: transparent;
+  margin: 0;
+  padding: 1.1rem 1.3rem 1.1rem 1.3rem;
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 1.22rem;
+  font-weight: 800;
+  color: #1976D2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.metric-accordion .accordion-header:hover {
+  background: linear-gradient(90deg, #bbdefb 60%, #e3f2fd 100%);
+}
+.metric-accordion .accordion-icon {
+  font-size: 1.6rem;
+  color: #1976D2;
+  margin-left: 0.7rem;
+  transition: transform 0.2s;
+}
+.metric-accordion .accordion-panel {
+  border-top: 1.5px solid #e3f0fa;
+  border-bottom-left-radius: 1.1rem;
+  border-bottom-right-radius: 1.1rem;
+  background: #f7faff;
+}
 """
 
 app_ui = ui.TagList(
