@@ -3,6 +3,26 @@ import matplotlib.pyplot as plt
 from shiny import ui, render, reactive
 from faicons import icon_svg
 from modules.screener import vol_df, stock_cols  # Make sure you import the necessary data
+import os
+from dotenv import load_dotenv
+import openai
+
+
+# Load metrics_summary.csv for metrics comparison
+_project_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+METRICS_PATH = os.path.join(_project_dir, 'data', 'metrics_summary.csv')
+metrics_df = pd.read_csv(METRICS_PATH)
+metrics_df['stock_id'] = metrics_df['stock_id'].astype(str)
+metric_choices = [c for c in metrics_df.columns if c not in ('stock_id', 'realized_volatility')]
+metric_labels = {c: c.replace('_', ' ').title() for c in metric_choices}
+if 'avg_bid_size1' in metric_labels:
+    metric_labels['avg_bid_size1'] = 'Avg Bid Size1'
+
+
+# Load environment variables from .env
+load_dotenv()
+api_key = os.getenv("OPENAI_API_KEY")
+client = openai.OpenAI(api_key=api_key)
 
 
 # Define the UI for Stock Comparison
@@ -27,21 +47,21 @@ def ui_stock_comparison(stock_ids):
         ui.tags.div(
             ui.tags.div(
                 ui.tags.div(
-                    ui.h4("Stock 1 Analysis", style="color:#1976D2;font-weight:700;margin-bottom:0.7rem;"),
+                    ui.h4("Stock 1 Analysis", style="color:#00838F;font-weight:700;margin-bottom:0.7rem;"),
                     ui.output_ui("stock_1_analysis"),
                     ui.output_plot("stock_1_volatility_plot"),
                     class_="main-card",
                     style="margin-bottom:2rem;"
                 ),
                 ui.tags.div(
-                    ui.h4("Stock 2 Analysis", style="color:#1976D2;font-weight:700;margin-bottom:0.7rem;"),
+                    ui.h4("Stock 2 Analysis", style="color:#00838F;font-weight:700;margin-bottom:0.7rem;"),
                     ui.output_ui("stock_2_analysis"),
                     ui.output_plot("stock_2_volatility_plot"),
                     class_="main-card",
                     style="margin-bottom:2rem;"
                 ),
                 ui.tags.div(
-                    ui.h4("Stock 3 Analysis", style="color:#1976D2;font-weight:700;margin-bottom:0.7rem;"),
+                    ui.h4("Stock 3 Analysis", style="color:#00838F;font-weight:700;margin-bottom:0.7rem;"),
                     ui.output_ui("stock_3_analysis"),
                     ui.output_plot("stock_3_volatility_plot"),
                     class_="main-card",
@@ -50,9 +70,21 @@ def ui_stock_comparison(stock_ids):
                 style="display:flex;flex-wrap:wrap;gap:2rem;justify-content:space-between;"
             ),
             ui.tags.div(
-                ui.h4("Comparison Plot", style="color:#1976D2;font-weight:700;margin-bottom:0.7rem;margin-top:2rem;"),
+                ui.h4("Comparison Plot", style="color:#2e7d32;font-weight:700;margin-bottom:0.7rem;margin-top:2rem;"),
                 ui.output_plot("comparison_plot"),
                 class_="main-card"
+            ),
+            ui.tags.div(
+                ui.h4("Metrics Comparison", style="color:#00838F;font-weight:700;margin-bottom:0.7rem;margin-top:2rem;"),
+                ui.tags.div(
+                    ui.output_data_frame("metrics_comparison_table"),
+                    class_="metrics-comparison-table"
+                ),
+                ui.tags.div(
+                    ui.output_ui("best_stock_suggestion"),
+                    style="margin-top:1.5rem;"
+                ),
+                class_="metrics-comparison-card"
             ),
             class_="main-content"
         ),
@@ -203,3 +235,62 @@ def server_stock_comparison(input, output, session):
         ax.grid(True)
         plt.tight_layout()
         return fig
+
+    @output
+    @render.data_frame
+    def metrics_comparison_table():
+        s1, s2, s3 = input.stock_1(), input.stock_2(), input.stock_3()
+        selected = [s for s in [s1, s2, s3] if s]
+        if not selected:
+            return pd.DataFrame()
+        df = metrics_df[metrics_df['stock_id'].isin(selected)].set_index('stock_id').T
+        df = df.loc[metric_choices]
+        df.index = [metric_labels.get(idx, idx) for idx in df.index]
+        df.columns = [f"Stock {col}" for col in df.columns]
+        df = df.reset_index().rename(columns={'index': 'Metric'})
+        # Round all numeric columns except 'Metric'
+        for col in df.columns:
+            if col != 'Metric':
+                df[col] = df[col].round(6)
+        return df
+
+    @reactive.Calc
+    def metrics_df_for_suggestion():
+        s1, s2, s3 = input.stock_1(), input.stock_2(), input.stock_3()
+        selected = [s for s in [s1, s2, s3] if s]
+        if not selected:
+            return pd.DataFrame()
+        df = metrics_df[metrics_df['stock_id'].isin(selected)].set_index('stock_id').T
+        df = df.loc[metric_choices]
+        df.index = [metric_labels.get(idx, idx) for idx in df.index]
+        df.columns = [f"Stock {col}" for col in df.columns]
+        df = df.reset_index().rename(columns={'index': 'Metric'})
+        for col in df.columns:
+            if col != 'Metric':
+                df[col] = df[col].round(6)
+        return df
+
+    @output
+    @render.ui
+    def best_stock_suggestion():
+        # Get the current metrics table (using the reactive calc) as a string
+        df = metrics_df_for_suggestion()
+        if df is None or df.empty:
+            return "No metrics to analyze."
+        # Format the table for the prompt
+        prompt = f"""
+You are a financial analyst AI. Given the following stock metrics table, suggest which stock is the best investment and explain why in 2-3 sentences. Be concise and use the data provided only.\n\n{df.to_string(index=False)}\n\nRespond with the stock ID and your reasoning.\n"""
+        try:
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=120,
+                temperature=0.3
+            )
+            suggestion = response.choices[0].message.content.strip()
+            return ui.tags.div([
+                ui.tags.h4("Application Suggestion", style="color:#00838F;font-weight:700;margin-bottom:0.7rem;margin-top:0.5rem;"),
+                ui.tags.p(suggestion, style="font-size:1.12rem;color:#222;background:#e0f7fa;padding:1rem 1.2rem;border-radius:1rem;")
+            ])
+        except Exception as e:
+            return f"Error getting suggestion: {e}"

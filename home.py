@@ -722,6 +722,63 @@ css = """
   display: none !important;
   content: none !important;
 }
+
+.metrics-comparison-card {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(0,131,143,0.10);
+  padding: 2rem 2rem 1.5rem 2rem;
+  margin-top: 2rem;
+  margin-bottom: 2.5rem;
+  overflow-x: auto;
+}
+.metrics-comparison-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0,131,143,0.06);
+  overflow: hidden;
+  font-size: 1.13rem;
+}
+.metrics-comparison-table th {
+  background: linear-gradient(90deg, #00838F 80%, #42a5f5 100%);
+  color: #fff;
+  font-weight: 800;
+  font-size: 1.18rem;
+  padding: 0.85rem 1.1rem;
+  border: none;
+  letter-spacing: 0.5px;
+}
+.metrics-comparison-table td {
+  padding: 0.85rem 1.1rem;
+  border: none;
+  font-size: 1.08rem;
+  color: #212121;
+  background: #fff;
+}
+.metrics-comparison-table tr:nth-child(even) td {
+  background: #f7faff;
+}
+.metrics-comparison-table td:first-child {
+  font-weight: 700;
+  color: #00838F;
+  font-size: 1.12rem;
+}
+.metrics-comparison-table tr:hover td {
+  background: #e0f7fa;
+  transition: background 0.2s;
+}
+
+/* --- Individual Stock Analysis Tab Styling --- */
+.analysis-layout .metrics-comparison-card .metrics-comparison-table th {
+  background: linear-gradient(90deg, #ff6d00 80%, #ffb300 100%);
+  color: #fff;
+}
+.analysis-layout .metrics-comparison-card .metrics-comparison-table td:first-child {
+  color: #ff6d00;
+}
 """
 stock_ids = [str(col) for col in vol_df.columns if col != 'time_id']
 
