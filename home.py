@@ -1441,7 +1441,7 @@ def server(input, output, session):
                         ui.tags.div(
                             ui.tags.div(
                                 ui.tags.div("Average Forecast Error", class_="summary-card-title"),
-                                ui.tags.div("+1.8%", class_="summary-card-value"),
+                                ui.tags.div("+9%", class_="summary-card-value"),
                                 class_="summary-card-content"
                             ),
                             ui.tags.div(ui.tags.i(class_="fa fa-chart-line"), class_="summary-card-icon"),
@@ -1449,8 +1449,8 @@ def server(input, output, session):
                         ),
                         ui.tags.div(
                             ui.tags.div(
-                                ui.tags.div("Mean Absolute Error", class_="summary-card-title"),
-                                ui.tags.div("2.2%", class_="summary-card-value"),
+                                ui.tags.div("Root Mean Square Percentage Error", class_="summary-card-title"),
+                                ui.tags.div("33%", class_="summary-card-value"),
                                 class_="summary-card-content"
                             ),
                             ui.tags.div(ui.tags.i(class_="fa fa-wave-square"), class_="summary-card-icon blue"),
@@ -1459,7 +1459,7 @@ def server(input, output, session):
                         ui.tags.div(
                             ui.tags.div(
                                 ui.tags.div("Model Confidence", class_="summary-card-title"),
-                                ui.tags.div("87%", class_="summary-card-value"),
+                                ui.tags.div("67%", class_="summary-card-value"),
                                 class_="summary-card-content"
                             ),
                             ui.tags.div(ui.tags.i(class_="fa fa-chart-line"), class_="summary-card-icon purple"),
