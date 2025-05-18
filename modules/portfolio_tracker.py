@@ -399,15 +399,15 @@ def ui_portfolio_tracker():
                     ui.p("Add stocks and track your portfolio.", class_="portfolio-subtitle"),
                     ui.h4("Add Stock"),
                     ui.tags.div(
-                        ui.input_select("pt_stock", "Stock ID:", choices=[str(s) for s in stock_cols]),
+                    ui.input_select("pt_stock", "Stock ID:", choices=[str(s) for s in stock_cols]),
                         class_="portfolio-input"
                     ),
                     ui.tags.div(
-                        ui.input_numeric("pt_volume", "Volume:", value=1, min=0),
+                    ui.input_numeric("pt_volume", "Volume:", value=1, min=0),
                         class_="portfolio-input"
                     ),
                     ui.tags.div(
-                        ui.input_numeric("pt_price", "Price per share:", value=1.0, min=0.0, step=0.01),
+                    ui.input_numeric("pt_price", "Price per share:", value=1.0, min=0.0, step=0.01),
                         class_="portfolio-input"
                     ),
                     ui.input_action_button("pt_add", "Add to Portfolio", class_="portfolio-btn"),
