@@ -30,6 +30,7 @@ matplotlib==3.10.1
 mdit-py-plugins==0.4.2
 mdurl==0.1.2
 narwhals==1.37.1
+networkx==3.4.2
 numpy==2.2.5
 openai==1.78.0
 orjson==3.10.18
