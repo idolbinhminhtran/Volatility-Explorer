@@ -7,6 +7,7 @@ from modules.portfolio_tracker import ui_portfolio_tracker, server_portfolio_tra
 from modules.individual_stock import ui_individual_stock, server_individual_stock
 from modules.screener import stock_cols, vol_df
 from modules.stock_comparison import ui_stock_comparison, server_stock_comparison
+from modules.model_details import ui_model_details, server_model_details
 import pandas as pd
 import numpy as np
 
@@ -364,13 +365,7 @@ body, .dashboard-layout {
   gap: 0.7rem;
   line-height: 1.1;
   padding-bottom: 0.1rem;
-  text-shadow: 0 0 16px var(--primary), 0 0 32px var(--accent), 0 0 32px #fff2;
-  animation: title-glow-2 2.5s infinite alternate;
   text-transform: uppercase;
-}
-@keyframes title-glow-2 {
-  0% { text-shadow: 0 0 16px var(--primary), 0 0 32px var(--accent), 0 0 32px #fff2; }
-  100% { text-shadow: 0 0 32px var(--accent), 0 0 48px var(--primary), 0 0 48px #fff2; }
 }
 .topbar-left {
   display: flex;
@@ -1510,15 +1505,7 @@ def server(input, output, session):
                 class_="main-content-inner"
             )
         elif page == "model":
-            return ui.tags.div(
-                ui.tags.h2("Model Details", style="margin-bottom:1.2rem;color:var(--accent);font-weight:800;"),
-            ui.tags.div(
-                    ui.tags.i(class_="fa fa-brain", style="font-size:2.5rem;color:var(--accent);margin-bottom:1.2rem;"),
-                    ui.tags.p("This is a placeholder for Model Details. Here you can display model architecture, training stats, feature importances, and more.", style="font-size:1.15rem;color:var(--text);margin-top:0.5rem;"),
-                    style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2.5rem 0;"
-                ),
-                class_="main-content"
-            )
+            return ui_model_details()
         elif page == "screener":
             return ui_screener()
         elif page == "individual":
@@ -1618,6 +1605,7 @@ def server(input, output, session):
     server_individual_stock(input, output, session)
     server_stock_comparison(input, output, session)
     server_portfolio_tracker(input, output, session)
+    server_model_details(input, output, session)
 
 here = os.path.dirname(__file__)
 www_path = os.path.join(here, "www")
