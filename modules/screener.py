@@ -28,10 +28,9 @@ min_time = int(vol_df['time_id'].min())
 max_time = int(vol_df['time_id'].max())
 
 def ui_screener():
-    return ui.nav_panel(
-        "Stock Screener",
-        ui.layout_sidebar(
-            ui.sidebar(
+    return ui.layout_sidebar(
+        ui.sidebar(
+            ui.tags.div(
                 ui.tags.div(
                     ui.tags.div(
                         icon_svg("magnifying-glass"),
@@ -84,9 +83,7 @@ def ui_screener():
                 ),
                 class_="main-content"
             )
-        ),
-        icon=icon_svg("magnifying-glass"),
-        value="screener"
+        )
     )
 
 
