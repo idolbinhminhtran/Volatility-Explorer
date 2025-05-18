@@ -1482,11 +1482,11 @@ def server(input, output, session):
                                 ui.tags.div(stock["name"], class_="company-name"),
                                 ui.tags.div(f"Forecasted RV: {stock['forecasted_rv']:.2f}%", class_="stat-row"),
                                 ui.tags.div(f"Current RV: {stock['current_rv']:.2f}%", class_="stat-row"),
-                                ui.tags.div("Error", class_="error-label"),
+                                ui.tags.div("Different", class_="error-label"),
                                 ui.tags.div(f"{stock['error']:+.2f}%", class_="error-value"),
                                 ui.tags.div("Extra stats: ...", class_="card-tooltip"),
                                 class_=("overview-card positive" if stock['error'] >= 0 else "overview-card negative"),
-                                title=f"{stock['symbol']} | Error: {stock['error']:.2f}% | Forecasted: {stock['forecasted_rv']:.2f}% | Current: {stock['current_rv']:.2f}%"
+                                title=f"{stock['symbol']} | Different: {stock['error']:.2f}% | Forecasted: {stock['forecasted_rv']:.2f}% | Current: {stock['current_rv']:.2f}%"
                             ) for stock in real_stocks
                         ] if real_stocks else [
                             ui.tags.div("No data available for heatmap cards.", style="color:red;font-size:1.5rem;text-align:center;")
