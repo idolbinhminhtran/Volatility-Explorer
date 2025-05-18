@@ -1438,8 +1438,8 @@ def server(input, output, session):
                 # Summary cards row at the top
                 ui.tags.div(
                     *[
-                        ui.tags.div(
-                            ui.tags.div(
+                    ui.tags.div(
+                                ui.tags.div(
                                 ui.tags.div("Average Forecast Error", class_="summary-card-title"),
                                 ui.tags.div("+9%", class_="summary-card-value"),
                                 class_="summary-card-content"
@@ -1447,8 +1447,8 @@ def server(input, output, session):
                             ui.tags.div(ui.tags.i(class_="fa fa-chart-line"), class_="summary-card-icon"),
                             class_="summary-card-overview"
                         ),
-                        ui.tags.div(
-                            ui.tags.div(
+                                ui.tags.div(
+                                    ui.tags.div(
                                 ui.tags.div("Root Mean Square Percentage Error", class_="summary-card-title"),
                                 ui.tags.div("33%", class_="summary-card-value"),
                                 class_="summary-card-content"
@@ -1456,8 +1456,8 @@ def server(input, output, session):
                             ui.tags.div(ui.tags.i(class_="fa fa-wave-square"), class_="summary-card-icon blue"),
                             class_="summary-card-overview"
                         ),
-                        ui.tags.div(
-                            ui.tags.div(
+                                ui.tags.div(
+                                    ui.tags.div(
                                 ui.tags.div("Model Confidence", class_="summary-card-title"),
                                 ui.tags.div("67%", class_="summary-card-value"),
                                 class_="summary-card-content"
@@ -1465,8 +1465,8 @@ def server(input, output, session):
                             ui.tags.div(ui.tags.i(class_="fa fa-chart-line"), class_="summary-card-icon purple"),
                             class_="summary-card-overview"
                         ),
-                        ui.tags.div(
-                            ui.tags.div(
+                                ui.tags.div(
+                                    ui.tags.div(
                                 ui.tags.div("Last Training", class_="summary-card-title"),
                                 ui.tags.div("2h ago", class_="summary-card-value"),
                                 class_="summary-card-content"
@@ -1592,7 +1592,7 @@ def server(input, output, session):
                             ui.tags.td(row["SOURCE"]),
                             ui.tags.td(row["TARGET"]),
                             ui.tags.td(
-                                ui.tags.div(
+            ui.tags.div(
                                     ui.tags.div(
                                         class_="attention-pairs-bar" + (" green" if row["WEIGHT"] >= 0.7 else " purple"),
                                         style=f"width:0%",
