@@ -76,7 +76,7 @@ def ui_model_details():
       opacity: 0;
       padding-bottom: 0 !important;
       pointer-events: none;
-      display: none;
+      overflow: hidden;
     }
     @keyframes fadeInPanel {
       from { opacity: 0; transform: translateY(24px); }
