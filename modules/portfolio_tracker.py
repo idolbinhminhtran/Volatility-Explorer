@@ -20,10 +20,9 @@ api_key = os.getenv("OPENAI_API_KEY")
 client = openai.OpenAI(api_key=api_key)
 
 def ui_portfolio_tracker():
-    return ui.nav_panel(
-        "Portfolio Tracker",
-        ui.layout_sidebar(
-            ui.sidebar(
+    return ui.layout_sidebar(
+        ui.sidebar(
+            ui.tags.div(
                 ui.tags.div(
                     ui.tags.div(
                         icon_svg("wallet"),
@@ -71,9 +70,7 @@ def ui_portfolio_tracker():
                 ),
                 class_="main-content"
             )
-        ),
-        icon=icon_svg("wallet"),
-        value="portfolio"
+        )
     )
 
 
