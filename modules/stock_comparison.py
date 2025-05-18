@@ -35,7 +35,7 @@ def ui_stock_comparison(stock_ids):
                     style="display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#00838F 60%,#42a5f5 100%);color:#fff;border-radius:50%;padding:1.1rem;font-size:2.2rem;box-shadow:0 2px 8px rgba(25,118,210,0.12);width:3.5rem;height:3.5rem;margin:0 auto 1.2rem auto;"
                 ),
                 ui.h2("Stock Comparison", style="color:#00838F;font-weight:900;text-align:center;margin-bottom:0.5rem;margin-top:0;letter-spacing:-1px;"),
-                ui.p("Compare volatility metrics across multiple stocks.", style="text-align:center;color:#444;font-size:1.08rem;margin-bottom:1.5rem;margin-top:0;"),
+                ui.p("Compare financial statistics across multiple stocks.", style="text-align:center;color:#444;font-size:1.08rem;margin-bottom:1.5rem;margin-top:0;"),
                 ui.h4("Select Stocks", style="margin-bottom:1.2rem;color:#00838F;font-weight:700;text-align:left;"),
                 ui.input_select("stock_1", "Stock 1", stock_ids),
                 ui.input_select("stock_2", "Stock 2", stock_ids),
@@ -75,7 +75,7 @@ def ui_stock_comparison(stock_ids):
                 class_="main-card"
             ),
             ui.tags.div(
-                ui.h4("Metrics Comparison", style="color:#00838F;font-weight:700;margin-bottom:0.7rem;margin-top:2rem;"),
+                ui.h4("Financial Statistics Comparison", style="color:#00838F;font-weight:700;margin-bottom:0.7rem;margin-top:2rem;"),
                 ui.tags.div(
                     ui.output_data_frame("metrics_comparison_table"),
                     class_="metrics-comparison-table"
@@ -276,10 +276,10 @@ def server_stock_comparison(input, output, session):
         # Get the current metrics table (using the reactive calc) as a string
         df = metrics_df_for_suggestion()
         if df is None or df.empty:
-            return "No metrics to analyze."
+            return "No financial statistics to analyze."
         # Format the table for the prompt
         prompt = f"""
-You are a financial analyst AI. Given the following stock metrics table, suggest which stock is the best investment and explain why in 2-3 sentences. Be concise and use the data provided only.\n\n{df.to_string(index=False)}\n\nRespond with the stock ID and your reasoning.\n"""
+You are a financial analyst AI. Given the following stock financial statistics table, suggest which stock is the best investment and explain why in 2-3 sentences. Be concise and use the data provided only.\n\n{df.to_string(index=False)}\n\nRespond with the stock ID and your reasoning.\n"""
         try:
             response = client.chat.completions.create(
                 model="gpt-3.5-turbo",

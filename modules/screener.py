@@ -313,7 +313,7 @@ def ui_screener():
                         class_="screener-icon"
                     ),
                     ui.h2("Stock Screener"),
-                    ui.p("Filter and rank stocks by metrics.", class_="screener-subtitle"),
+                    ui.p("Filter and rank stocks by financial statistics.", class_="screener-subtitle"),
                     ui.h4("Time Range"),
                     ui.input_slider(
                         "vol_time_range", "Time ID Range (for Volatility):",
@@ -347,7 +347,7 @@ def ui_screener():
                     class_="screener-title-row"
                 ),
                 ui.tags.div(
-                    "Showing the top N stocks by your chosen metrics (ranked by the first).",
+                    "Showing the top N stocks by your chosen financial statistics (ranked by the first).",
                     class_="screener-subtitle"
                 ),
                 ui.tags.div(
