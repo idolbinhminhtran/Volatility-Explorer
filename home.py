@@ -68,14 +68,14 @@ body, .dashboard-layout {
   transition: background 0.5s cubic-bezier(.77,0,.18,1);
 }
 .sidebar {
-  width: 260px;
+  width: 340px;
   background: var(--background-sidebar);
   border-radius: 0;
   box-shadow: none;
   border: none;
   display: flex;
   flex-direction: column;
-  padding: 2rem 1.2rem 1.2rem 1.2rem;
+  padding: 2rem 1.5rem 1.5rem 1.5rem;
   min-height: 80vh;
   z-index: 10;
   position: relative;
@@ -204,16 +204,16 @@ body, .dashboard-layout {
   100% { box-shadow: 0 0 32px 8px var(--primary), 0 0 16px 2px var(--accent); }
 }
 .sidebar-section-title {
-  font-size: 1.25rem;
+  font-size: 1.18rem;
   font-weight: 900;
   color: var(--primary);
   margin-bottom: 0.7rem;
-  letter-spacing: 0.04em;
-  position: relative;
-  text-transform: uppercase;
+  letter-spacing: 0.03em;
   background: linear-gradient(90deg, var(--primary) 60%, var(--accent) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  text-transform: none;
+  position: relative;
 }
 .sidebar-section-title::after {
   content: "";
@@ -494,12 +494,17 @@ body, .dashboard-layout {
   margin-bottom: 0.3rem;
 }
 .summary-card-value {
-  font-size: 2rem;
-  font-weight: 900;
-  color: var(--primary);
-  background: linear-gradient(90deg, var(--primary) 60%, var(--accent) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  font-size: 2.2rem;
+  font-weight: 1200;
+  color: #fff;
+  text-shadow: 0 4px 18px #1db95499, 0 1px 4px #000a, 0 0 2px #fff;
+  margin-bottom: 0.1rem;
+  z-index: 2;
+  transition: color 0.4s, transform 0.18s;
+  box-shadow: none !important;
+  border-radius: 0.5rem;
+  padding: 0.1rem 0.3rem;
+  letter-spacing: 0.01em;
 }
 .main-row {
   display: flex;
@@ -621,25 +626,53 @@ body, .dashboard-layout {
   width: 100%;
 }
 .overview-card {
-  background: rgba(36, 38, 44, 0.95);
   border-radius: 1.5rem;
-  box-shadow: 0 6px 32px 0 rgba(29,185,84,0.10), 0 1.5px 0 0 var(--primary);
-  border: 2.5px solid rgba(167,139,250,0.10);
-  padding: 2.2rem 2.2rem 1.7rem 2.2rem;
-  min-width: 260px;
-  min-height: 180px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  transition: box-shadow 0.3s, border 0.3s, transform 0.3s, background 0.5s;
+  box-shadow: 0 4px 18px #0006;
+  padding: 1rem 1.2rem;
+  min-width: 160px;
+  max-width: 240px;
+  width: 100%;
+  transition: box-shadow 0.22s, border 0.22s, transform 0.18s;
+  font-size: 1.05rem;
   position: relative;
-  margin: 0.5rem;
+  overflow: hidden;
+  margin-bottom: 0;
 }
 .overview-card:hover {
-  box-shadow: 0 16px 48px 0 var(--primary), 0 0 32px 4px var(--accent);
-  border: 2.5px solid var(--primary);
-  transform: translateY(-8px) scale(1.045);
+  box-shadow: 0 12px 36px 0 #1db95444, 0 0 32px 4px #fff2;
+  transform: translateY(-4px) scale(1.035);
   z-index: 2;
+}
+.overview-card.positive,
+.overview-card.negative {
+  border-radius: 1.5rem;
+  box-shadow: 0 4px 18px #0006;
+}
+.overview-card-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem 2rem;
+  justify-content: center;
+  width: 100%;
+  margin-bottom: 1.2rem;
+}
+@media (max-width: 1100px) {
+  .overview-card-grid { gap: 1.2rem; }
+  .overview-card { min-width: 120px; max-width: 100%; }
+}
+.overview-card.positive {
+  background: linear-gradient(135deg, #1db954 80%, #43e97b 100%);
+  color: #fff;
+  border: 2.5px solid #1db954;
+  box-shadow: 0 8px 32px 0 rgba(29,185,84,0.18), 0 4px 16px #1db954;
+}
+.overview-card.positive:hover {
+  box-shadow: 0 16px 48px 0 #43e97b, 0 0 32px 4px #1db954;
+  border: 2.5px solid #43e97b;
+  background: linear-gradient(120deg, #43e97b 60%, #1db954 100%);
+}
+.overview-card.positive .error-value {
+  color: #fff !important;
 }
 .overview-card.negative {
   background: linear-gradient(135deg, #c62828 80%, #ff8a65 100%);
@@ -648,168 +681,177 @@ body, .dashboard-layout {
   box-shadow: 0 8px 32px 0 rgba(198,40,40,0.18), 0 4px 16px #c62828;
 }
 .overview-card.negative:hover {
-  box-shadow: 0 16px 48px 0 #c62828, 0 0 32px 4px #ff8a65;
+  box-shadow: 0 16px 48px 0 #ff8a65, 0 0 32px 4px #c62828;
   border: 2.5px solid #ff8a65;
   background: linear-gradient(120deg, #ff8a65 60%, #c62828 100%);
 }
-.overview-card .stock-symbol {
-  font-size: 1.5rem;
-  font-weight: 1000;
-  color: var(--primary);
-  margin-bottom: 0.2rem;
-  letter-spacing: 0.02em;
+.overview-card.negative .error-value {
+  color: #fff !important;
+}
+.overview-card .stock-symbol,
+.overview-card .company-name,
+.overview-card .stat-row,
+.overview-card .error-label,
+.overview-card .error-value {
   text-shadow: 0 1px 4px #000a;
 }
-.overview-card.negative .stock-symbol {
+.overview-card .stock-symbol {
   color: #fff;
-  text-shadow: 0 1px 4px #c62828;
+  font-size: 1.05rem;
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  margin-bottom: 0.1rem;
+  position: relative;
+  z-index: 2;
 }
 .overview-card .company-name {
-  font-size: 1.1rem;
+  font-size: 0.98rem;
   font-weight: 600;
-  color: #bdbdbd;
-  margin-bottom: 0.5rem;
+  color: #e0e0e0;
+  margin-bottom: 0.2rem;
+  position: relative;
+  z-index: 2;
 }
 .overview-card .stat-row {
-  font-size: 1.05rem;
+  font-size: 0.93rem;
   color: #e0e0e0;
   margin-bottom: 0.1rem;
+  position: relative;
+  z-index: 2;
 }
 .overview-card .error-label {
-  font-size: 1.1rem;
+  font-size: 0.98rem;
   font-weight: 700;
-  margin-top: 0.7rem;
+  margin-top: 0.3rem;
   color: #fff;
   opacity: 0.7;
+  position: relative;
+  z-index: 2;
 }
 .overview-card .error-value {
-  font-size: 2rem;
-  font-weight: 1000;
-  margin-top: 0.2rem;
-  color: var(--primary);
+  font-size: 1.25rem;
+  font-weight: 1200;
+  margin-top: 0.1rem;
+  color: #fff;
+  position: relative;
+  z-index: 2;
 }
 .overview-card.negative .error-value {
   color: #fff;
-  text-shadow: 0 1px 4px #c62828;
+  text-shadow: 0 1px 4px #c62828, 0 1px 4px #000a;
+}
+.overview-card.positive .error-value {
+  color: #fff;
+  text-shadow: 0 1px 4px #1db954, 0 1px 4px #000a;
 }
 .overview-card-grid {
   display: flex;
   flex-wrap: wrap;
   gap: 1.2rem 1.2rem;
-  justify-content: flex-start;
+  justify-content: center;
   width: 100%;
+  margin-bottom: 1.2rem;
 }
 .summary-cards-row-overview {
   display: flex;
-  gap: 1.5rem;
+  gap: 1rem;
   margin-bottom: 2.2rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  justify-content: center;
+  width: 100%;
 }
 .summary-card-overview {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
   position: relative;
-  overflow: hidden;
-  border: 2.5px solid transparent;
-  background: rgba(60, 65, 80, 0.55);
+  overflow: visible !important;
+  border: 2.5px solid rgba(167,139,250,0.18);
+  background: linear-gradient(120deg, #23272f 60%, #232f27 100%);
   background-clip: padding-box;
-  box-shadow: 0 8px 32px 0 rgba(29,185,84,0.12), 0 1.5px 0 0 var(--accent);
-  border-radius: 1.2rem;
-  transition: box-shadow 0.3s, transform 0.3s, border 0.3s, background 0.5s;
+  box-shadow: 0 8px 32px 0 rgba(29,185,84,0.18), 0 1.5px 0 0 var(--accent);
+  border-radius: 1.7rem;
+  min-width: 220px;
+  max-width: 320px;
+  width: 100%;
+  padding: 1.7rem 2.2rem 1.7rem 1.7rem;
+  margin: 0;
+  transition: box-shadow 0.3s, border 0.3s, background 0.5s;
+  box-shadow: 0 8px 32px 0 #1db95422, 0 1.5px 0 0 #1db954;
 }
 .summary-card-overview::before {
   content: "";
   position: absolute;
-  inset: -2px;
-  border-radius: 1.3rem;
-  z-index: 1;
+  inset: 0;
+  border-radius: 1.7rem;
   pointer-events: none;
-  background: linear-gradient(120deg, var(--primary), var(--accent), var(--primary));
+  z-index: 1;
+  background: linear-gradient(120deg, rgba(167,139,250,0.13) 0%, rgba(29,185,84,0.13) 100%);
   opacity: 0.22;
   filter: blur(2.5px);
-  animation: border-glow-2 3.5s linear infinite alternate;
-}
-@keyframes border-glow-2 {
-  0% { filter: blur(2.5px); opacity: 0.18; }
-  100% { filter: blur(4.5px); opacity: 0.32; }
-}
-.summary-card-overview::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 1.2rem;
-  pointer-events: none;
-  z-index: 0;
-  background: linear-gradient(120deg, rgba(167,139,250,0.13) 0%, rgba(29,185,84,0.13) 100%);
-  opacity: 0.18;
-  animation: card-shimmer 7s ease-in-out infinite alternate;
-}
-@keyframes card-shimmer {
-  0% { background-position: 0% 50%; }
-  100% { background-position: 100% 50%; }
+  box-shadow: 0 0 32px 8px #1db95433 inset;
 }
 .summary-card-overview:hover {
-  box-shadow: 0 24px 64px 0 var(--shadow-hover), 0 0 32px 4px var(--accent);
+  box-shadow: 0 24px 64px 0 var(--shadow-hover), 0 0 32px 4px var(--accent), 0 0 32px 8px #1db95455;
   border-color: var(--accent);
   transform: translateY(-8px) scale(1.045);
 }
 .summary-card-content {
-  padding: 1.1rem 4.2rem 0.9rem 1.2rem;
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
-  min-height: 90px;
+  align-items: flex-start;
   justify-content: center;
+  gap: 0.1rem;
+  min-height: 60px;
   z-index: 2;
   position: relative;
+  width: 100%;
 }
-.summary-card-overview .summary-card-title {
+.summary-card-title {
+  font-size: 1.01rem;
   color: var(--text) !important;
   font-weight: 900;
-  font-size: 1.13rem;
   margin-bottom: 0.1rem;
   letter-spacing: 0.01em;
   line-height: 1.2;
   z-index: 2;
 }
-.summary-card-overview .summary-card-value {
-  font-size: 3.2rem;
+.summary-card-value {
+  font-size: 2.2rem;
   font-weight: 1200;
   color: #fff;
-  letter-spacing: 0.01em;
-  background: none !important;
-  -webkit-background-clip: unset;
-  -webkit-text-fill-color: unset;
-  text-shadow: none;
+  text-shadow: 0 4px 18px #1db95499, 0 1px 4px #000a, 0 0 2px #fff;
   margin-bottom: 0.1rem;
   z-index: 2;
-  transition: color 0.4s;
+  transition: color 0.4s, transform 0.18s;
   box-shadow: none !important;
   border-radius: 0.5rem;
-  padding: 0.2rem 0.5rem;
+  padding: 0.1rem 0.3rem;
+  letter-spacing: 0.01em;
 }
 .summary-card-overview:hover .summary-card-value {
-  color: var(--primary);
+  color: #1db954;
   text-shadow: 0 0 32px var(--accent), 0 2px 32px var(--primary), 0 1px 0 #fff9;
+  transform: scale(1.08);
 }
-.summary-card-overview .summary-card-icon {
-  position: absolute;
-  top: 50%;
-  right: 1.1rem;
-  transform: translateY(-50%);
-  z-index: 3;
+.summary-card-icon {
+  margin-left: auto;
+  position: static;
+  align-self: flex-start;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 50%;
+  font-size: 1.15rem;
+  color: var(--primary) !important;
+  background: #23272f;
+  box-shadow: 0 0 12px 3px var(--accent), 0 2px 8px 0 rgba(29,185,84,0.10);
+  border: 2px solid var(--accent);
+  transition: box-shadow 0.3s, transform 0.3s, background 0.3s, color 0.3s;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2.8rem;
-  height: 2.8rem;
-  border-radius: 50%;
-  font-size: 1.55rem;
-  color: var(--primary) !important;
-  background: #fff;
-  box-shadow: 0 0 24px 6px var(--accent), 0 2px 12px 0 rgba(29,185,84,0.10);
-  border: 2px solid var(--accent);
-  transition: box-shadow 0.3s, transform 0.3s, background 0.3s, color 0.3s;
 }
-.summary-card-overview .summary-card-icon.blue { color: #4f8cff !important; }
+.summary-card-overview .summary-card-icon.blue { color: var(--accent) !important; }
 .summary-card-overview .summary-card-icon.purple { color: var(--accent) !important; }
 .summary-card-overview .summary-card-icon.yellow { color: #fbbf24 !important; }
 .summary-card-overview:hover .summary-card-icon {
@@ -825,22 +867,23 @@ body, .dashboard-layout {
   100% { transform: translateY(-50%) scale(1.13); }
 }
 .attention-pairs-card {
-  background: linear-gradient(135deg, #23272f 60%, #232f27 100%);
-  border-radius: 1.5rem;
-  box-shadow: 0 8px 32px 0 rgba(29,185,84,0.10), 0 1.5px 0 0 var(--primary);
-  border: 2.5px solid rgba(167,139,250,0.10);
-  padding: 2.2rem 2.2rem 1.7rem 2.2rem;
-  max-width: 520px;
+  background: none;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
   margin-top: 2.5rem;
-  position: relative;
-  overflow: hidden;
+  padding: 0;
 }
 .attention-pairs-title {
-  font-weight: 1000;
-  font-size: 1.35rem;
+  font-size: 1.18rem;
+  font-weight: 900;
   color: var(--primary);
-  margin-bottom: 1.1rem;
-  letter-spacing: 0.01em;
+  margin-bottom: 0.7rem;
+  letter-spacing: 0.03em;
+  background: linear-gradient(90deg, var(--primary) 60%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-transform: none;
 }
 .attention-pairs-table {
   width: 100%;
@@ -932,14 +975,6 @@ body, .dashboard-layout {
   align-items: center;
   width: 100%;
   margin-top: 2.5rem;
-}
-.summary-cards-row-overview {
-  display: flex;
-  gap: 1.5rem;
-  margin-bottom: 2.2rem;
-  flex-wrap: wrap;
-  justify-content: center;
-  width: 100%;
 }
 .overview-card-grid {
   display: flex;
@@ -1105,10 +1140,10 @@ body, .dashboard-layout {
 /* --- Responsive Layout & Collapsible Sidebar --- */
 .sidebar-toggle {
   display: none;
-  position: absolute;
+  position: fixed;
   top: 1.2rem;
   left: 1.2rem;
-  z-index: 100;
+  z-index: 300;
   background: none;
   border: none;
   color: var(--primary);
@@ -1201,6 +1236,300 @@ h1, h2, .topbar-title { font-size: 2rem; font-family: 'Inter', sans-serif; }
 .overview-card.positive .error-value {
   color: #fff !important;
 }
+.attention-pair-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.5rem 0;
+}
+.attention-pair-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.08rem;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(167,139,250,0.08);
+  padding: 0.2rem 0.1rem 0.2rem 0.1rem;
+  transition: background 0.2s;
+  border-radius: 0.5rem;
+}
+.attention-pair-list-item:last-child {
+  border-bottom: none;
+}
+.attention-pair-list-item:hover {
+  background: rgba(167,139,250,0.10);
+}
+.attention-pair-label {
+  font-weight: 700;
+  color: #fff;
+  font-size: 1.08rem;
+  letter-spacing: 0.01em;
+}
+.attention-pair-weight {
+  font-weight: 700;
+  padding: 0.1rem 0.7rem;
+  border-radius: 1rem;
+  font-size: 1.05rem;
+  margin-left: 0.5rem;
+  display: flex;
+  align-items: center;
+  background: rgba(167,139,250,0.10);
+  color: #a78bfa;
+  position: relative;
+}
+.attention-pair-weight.green {
+  color: #1db954;
+  background: rgba(29,185,84,0.10);
+}
+.attention-pair-dot {
+  display: inline-block;
+  width: 0.85em;
+  height: 0.85em;
+  border-radius: 50%;
+  margin-right: 0.6em;
+  background: linear-gradient(90deg, #1db954 60%, #a78bfa 100%);
+  box-shadow: 0 1px 4px #0003;
+}
+/* --- Model Performance Section --- */
+.model-performance-title {
+  font-size: 2.2rem;
+  font-weight: 1200;
+  color: var(--primary);
+  text-align: center;
+  margin-bottom: 2.2rem;
+  letter-spacing: 0.01em;
+  line-height: 1.1;
+  text-shadow: 0 2px 16px #1db95433, 0 1px 4px #000a;
+}
+.summary-card-overview {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  position: relative;
+  overflow: visible !important;
+  border: 2.5px solid rgba(167,139,250,0.18);
+  background: linear-gradient(120deg, #23272f 60%, #232f27 100%);
+  background-clip: padding-box;
+  box-shadow: 0 8px 32px 0 rgba(29,185,84,0.18), 0 1.5px 0 0 var(--accent);
+  border-radius: 1.7rem;
+  min-width: 180px;
+  max-width: 260px;
+  width: 100%;
+  padding: 1.2rem 1.3rem 1.2rem 1.1rem;
+  margin: 0;
+  transition: box-shadow 0.3s, border 0.3s, background 0.5s;
+  box-shadow: 0 8px 32px 0 #1db95422, 0 1.5px 0 0 #1db954;
+}
+.summary-card-overview::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 1.7rem;
+  pointer-events: none;
+  z-index: 1;
+  background: linear-gradient(120deg, rgba(167,139,250,0.13) 0%, rgba(29,185,84,0.13) 100%);
+  opacity: 0.22;
+  filter: blur(2.5px);
+  box-shadow: 0 0 32px 8px #1db95433 inset;
+}
+.summary-card-overview:hover {
+  box-shadow: 0 24px 64px 0 var(--shadow-hover), 0 0 32px 4px var(--accent), 0 0 32px 8px #1db95455;
+  border-color: var(--accent);
+  transform: translateY(-8px) scale(1.045);
+}
+.summary-card-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0.1rem;
+  min-height: 60px;
+  z-index: 2;
+  position: relative;
+  width: 100%;
+}
+.model-insights-panel {
+  background: linear-gradient(120deg, #23272f 60%, #232f27 100%);
+  border-radius: 2rem;
+  box-shadow: 0 8px 32px 0 #1db95422, 0 1.5px 0 0 #1db954;
+  padding: 2rem 2rem 2rem 2rem;
+  margin: 0 auto 2.5rem auto;
+  max-width: 1000px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.model-insights-title {
+  font-size: 2.3rem;
+  font-weight: 1200;
+  color: var(--primary);
+  text-align: center;
+  margin-bottom: 2.5rem;
+  letter-spacing: 0.01em;
+}
+.model-section-title {
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: var(--primary);
+  margin-bottom: 1.2rem;
+  text-align: left;
+  width: 100%;
+}
+.model-section-divider {
+  border: none;
+  border-top: 2px solid #a78bfa44;
+  margin: 2.5rem 0;
+  width: 100%;
+}
+.custom-tooltip-container {
+  position: relative;
+  display: inline-block;
+  z-index: 1000;
+}
+.info-icon {
+  color: #a78bfa;
+  font-size: 1.2rem;
+  cursor: pointer;
+  margin-left: 0.2rem;
+  transition: color 0.18s;
+  background: #23272f;
+  border-radius: 50%;
+  padding: 0.18em 0.22em;
+  box-shadow: 0 1px 4px #0005;
+}
+.info-icon:hover {
+  color: #1db954;
+}
+.custom-tooltip {
+  position: absolute;
+  left: 50%;
+  bottom: 120%;
+  transform: translateX(-50%);
+  min-width: 180px;
+  max-width: 260px;
+  background: rgba(30,32,40,0.98);
+  color: #fff;
+  border-radius: 0.8rem;
+  padding: 0.7rem 1.1rem;
+  font-size: 0.98rem;
+  font-weight: 500;
+  box-shadow: 0 12px 48px #000c, 0 1.5px 0 0 #a78bfa44;
+  line-height: 1.45;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.22s, visibility 0.22s, transform 0.22s;
+  white-space: normal;
+  backdrop-filter: blur(2px);
+}
+.custom-tooltip-container:hover .custom-tooltip,
+.custom-tooltip-container:focus-within .custom-tooltip {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+.custom-tooltip::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translateX(-50%);
+  border-width: 8px;
+  border-style: solid;
+  border-color: rgba(30,32,40,0.98) transparent transparent transparent;
+}
+.custom-tooltip-global {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 99999;
+  min-width: 180px;
+  max-width: 260px;
+  background: rgba(30,32,40,0.98);
+  color: #fff;
+  border-radius: 0.8rem;
+  padding: 0.7rem 1.1rem;
+  font-size: 0.98rem;
+  font-weight: 500;
+  box-shadow: 0 12px 48px #000c, 0 1.5px 0 0 #a78bfa44;
+  line-height: 1.45;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.22s, visibility 0.22s, transform 0.22s;
+  white-space: normal;
+  backdrop-filter: blur(2px);
+}
+.custom-tooltip-global.show {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+.custom-tooltip-global::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translateX(-50%);
+  border-width: 8px;
+  border-style: solid;
+  border-color: rgba(30,32,40,0.98) transparent transparent transparent;
+}
+/* --- Unified Sidebar Pill List --- */
+.sidebar-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.5rem 0;
+}
+.sidebar-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.10rem;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(167,139,250,0.08);
+  padding: 0.35rem 0.1rem 0.35rem 0.1rem;
+  border-radius: 0.7rem;
+  font-weight: 700;
+  transition: background 0.2s;
+}
+.sidebar-list-item:last-child {
+  border-bottom: none;
+}
+.sidebar-list-item:hover {
+  background: rgba(167,139,250,0.13);
+}
+.sidebar-label {
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.01em;
+}
+.sidebar-pill {
+  font-weight: 900;
+  padding: 0.13rem 1.05rem;
+  border-radius: 1.2rem;
+  font-size: 1.08rem;
+  margin-left: 0.7rem;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 2px 8px #0003;
+  background: rgba(167,139,250,0.13);
+  color: #a78bfa;
+  transition: background 0.18s, color 0.18s;
+}
+.sidebar-pill.green {
+  color: #1db954;
+  background: rgba(29,185,84,0.13);
+}
+.sidebar-pill.red {
+  color: #ff4d4f;
+  background: rgba(255,77,79,0.13);
+}
+.sidebar-pill.purple {
+  color: #a78bfa;
+  background: rgba(167,139,250,0.13);
+}
 """
 stock_ids = [str(col) for col in vol_df.columns if col != 'time_id']
 
@@ -1241,10 +1570,15 @@ def sidebar_nav(current_page):
         ui.tags.hr(class_="sidebar-divider"),
         # Watchlist
         ui.tags.div(
-            ui.tags.div("Watchlist", class_="watchlist-title"),
+            ui.tags.div("Watchlist", class_="sidebar-section-title"),
             ui.output_ui("watchlist_ui"),
-            ui.tags.div("View all stocks", class_="watchlist-viewall"),
+            ui.input_action_button("view_all_stocks_btn", "View all stocks", class_="watchlist-viewall"),
             class_="watchlist-section"
+        ),
+        # High Attention Pairs
+        ui.tags.div(
+            ui.tags.div("High Attention Pairs", class_="attention-pairs-title"),
+            ui.output_ui("attention_pairs_table"),
         ),
         class_="sidebar"
     )
@@ -1256,37 +1590,81 @@ app_ui = ui.TagList(
         # --- Add JS for animated number count-up and pairs bar animation ---
         ui.tags.script(r"""
 document.addEventListener('DOMContentLoaded', function() {
-  document.querySelectorAll('.summary-card-value').forEach(function(el) {
-    let text = el.textContent.trim();
-    let match = text.match(/([+-]?\d+(\.\d+)?)/);
-    if (!match) return;
-    let num = parseFloat(match[1]);
-    let isPercent = text.includes('%');
-    let isAgo = text.includes('ago');
-    if (isAgo) return; // skip "2h ago"
-    let start = 0, end = num, duration = 1200;
-    let startTime = null;
-    function animate(ts) {
-      if (!startTime) startTime = ts;
-      let progress = Math.min((ts - startTime) / duration, 1);
-      let val = (end - start) * progress + start;
-      el.textContent = (num < 10 ? val.toFixed(1) : Math.round(val)) + (isPercent ? '%' : '');
-      if (progress < 1) requestAnimationFrame(animate);
-      else el.textContent = text; // restore original
-    }
-    el.textContent = (isPercent ? '0%' : '0');
-    requestAnimationFrame(animate);
-  });
-  // Animate High Attention Pairs bars
-  setTimeout(function() {
-    document.querySelectorAll('.attention-pairs-bar').forEach(function(bar) {
-      var width = bar.getAttribute('data-width');
-      bar.style.width = width + '%';
-      bar.classList.add('animated');
+  // Sidebar toggle
+  var sidebar = document.querySelector('.sidebar');
+  var toggleBtn = document.getElementById('sidebar-toggle-btn');
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', function() {
+      sidebar.classList.toggle('open');
     });
-  }, 400);
+  }
+  // Close sidebar when clicking outside (on small screens)
+  document.addEventListener('click', function(e) {
+    if (window.innerWidth <= 900 && sidebar && !sidebar.contains(e.target) && e.target.id !== 'sidebar-toggle-btn') {
+      sidebar.classList.remove('open');
+    }
+  });
 });
-""")
+"""),
+        # --- Add JS for global tooltip portal ---
+        ui.tags.script(r'''
+document.addEventListener('DOMContentLoaded', function() {
+  let tooltip;
+  function showTooltip(e, text) {
+    if (!tooltip) {
+      tooltip = document.createElement('div');
+      tooltip.className = 'custom-tooltip-global';
+      document.body.appendChild(tooltip);
+    }
+    tooltip.textContent = text;
+    tooltip.classList.add('show');
+    // Position above the icon
+    const rect = e.target.getBoundingClientRect();
+    const scrollY = window.scrollY || window.pageYOffset;
+    const scrollX = window.scrollX || window.pageXOffset;
+    tooltip.style.left = (rect.left + rect.width/2 + scrollX) + 'px';
+    tooltip.style.top = (rect.top + scrollY - tooltip.offsetHeight - 16) + 'px';
+    tooltip.style.transform = 'translateX(-50%)';
+    tooltip.style.visibility = 'visible';
+    tooltip.style.opacity = '1';
+  }
+  function hideTooltip() {
+    if (tooltip) {
+      tooltip.classList.remove('show');
+      tooltip.style.visibility = 'hidden';
+      tooltip.style.opacity = '0';
+    }
+  }
+  document.body.addEventListener('mouseenter', function(e) {
+    if (e.target.classList.contains('info-icon')) {
+      const text = e.target.getAttribute('data-tooltip');
+      if (text) showTooltip(e, text);
+    }
+  }, true);
+  document.body.addEventListener('mouseleave', function(e) {
+    if (e.target.classList.contains('info-icon')) {
+      hideTooltip();
+    }
+  }, true);
+  document.body.addEventListener('focusin', function(e) {
+    if (e.target.classList.contains('info-icon')) {
+      const text = e.target.getAttribute('data-tooltip');
+      if (text) showTooltip(e, text);
+    }
+  });
+  document.body.addEventListener('focusout', function(e) {
+    if (e.target.classList.contains('info-icon')) {
+      hideTooltip();
+    }
+  });
+});
+'''),
+    ),
+    ui.tags.button(
+        ui.tags.i(class_="fa fa-bars"),
+        id="sidebar-toggle-btn",
+        class_="sidebar-toggle",
+        aria_label="Toggle sidebar"
     ),
     ui.output_ui("app_root")
 )
@@ -1423,84 +1801,109 @@ def server(input, output, session):
                             "current_rv": current_rv,
                             "error": error
                         })
-                # Sort and select top 5 positive and top 5 negative error cards
+                # Sort and select 5 positive and 4 negative error cards
                 positive_cards = sorted([s for s in real_stocks if s["error"] >= 0], key=lambda x: -x["error"])[:5]
-                negative_cards = sorted([s for s in real_stocks if s["error"] < 0], key=lambda x: x["error"])[:5]
+                negative_cards = sorted([s for s in real_stocks if s["error"] < 0], key=lambda x: x["error"])[:4]
                 real_stocks = positive_cards + negative_cards
             except Exception as e:
                 return ui.tags.div(f"Error: {e}", style="color:red;font-size:1.5rem;text-align:center;")
             return ui.tags.div(
-                # Summary cards row at the top
+                # --- Model Insights Panel ---
                 ui.tags.div(
-                    *[
+                    ui.tags.div("Model Insights", class_="model-insights-title"),
+                    # Model Performance
                     ui.tags.div(
-                                ui.tags.div(
-                                ui.tags.div("Average Forecast Error", class_="summary-card-title"),
-                                ui.tags.div("+9%", class_="summary-card-value"),
-                                class_="summary-card-content"
-                            ),
-                            ui.tags.div(ui.tags.i(class_="fa fa-chart-line"), class_="summary-card-icon"),
-                            class_="summary-card-overview"
-                        ),
+                        ui.tags.div("Model Performance", class_="model-section-title"),
+                        ui.tags.div(
+                            *[
                                 ui.tags.div(
                                     ui.tags.div(
-                                ui.tags.div("Root Mean Square Percentage Error", class_="summary-card-title"),
-                                ui.tags.div("33%", class_="summary-card-value"),
-                                class_="summary-card-content"
-                            ),
-                            ui.tags.div(ui.tags.i(class_="fa fa-wave-square"), class_="summary-card-icon blue"),
-                            class_="summary-card-overview"
-                        ),
+                                        ui.tags.div(
+                                            [
+                                                "Average Forecast Error",
+                                                ui.tags.i(class_="fa fa-info-circle info-icon", **{"data-tooltip": "How much, on average, the model's predictions differ from the actual volatility. Lower is better."})
+                                            ],
+                                            class_="summary-card-title"
+                                        ),
+                                        ui.tags.div("+9%", class_="summary-card-value"),
+                                        class_="summary-card-content"
+                                    ),
+                                    ui.tags.div(ui.tags.i(class_="fa fa-chart-line"), class_="summary-card-icon"),
+                                    class_="summary-card-overview"
+                                ),
                                 ui.tags.div(
                                     ui.tags.div(
-                                ui.tags.div("Model Confidence", class_="summary-card-title"),
-                                ui.tags.div("67%", class_="summary-card-value"),
-                                class_="summary-card-content"
-                            ),
-                            ui.tags.div(ui.tags.i(class_="fa fa-chart-line"), class_="summary-card-icon purple"),
-                            class_="summary-card-overview"
-                        ),
+                                        ui.tags.div(
+                                            [
+                                                "Root Mean Square Percentage Error",
+                                                ui.tags.i(class_="fa fa-info-circle info-icon", **{"data-tooltip": "Shows the average size of prediction errors as a percentage. Lower means more accurate predictions."})
+                                            ],
+                                            class_="summary-card-title"
+                                        ),
+                                        ui.tags.div("33%", class_="summary-card-value"),
+                                        class_="summary-card-content"
+                                    ),
+                                    ui.tags.div(ui.tags.i(class_="fa fa-wave-square"), class_="summary-card-icon blue"),
+                                    class_="summary-card-overview"
+                                ),
                                 ui.tags.div(
                                     ui.tags.div(
-                                ui.tags.div("Last Training", class_="summary-card-title"),
-                                ui.tags.div("2h ago", class_="summary-card-value"),
-                                class_="summary-card-content"
-                            ),
-                            ui.tags.div(ui.tags.i(class_="fa fa-calendar"), class_="summary-card-icon yellow"),
-                            class_="summary-card-overview"
-                        ),
-                    ],
-                    class_="summary-cards-row-overview"
-                ),
-                ui.tags.div(class_="section-separator"),
-                ui.tags.h2("Next-Day Volatility Forecast Heatmap", style="margin-bottom:1.2rem;color:var(--primary);font-weight:800;text-align:center;"),
-                ui.tags.div(
-                    ui.tags.div(
-                        *([
-                            ui.tags.div(
-                                ui.tags.div(stock["symbol"], class_="stock-symbol"),
-                                ui.tags.div(stock["name"], class_="company-name"),
-                                ui.tags.div(f"Forecasted RV: {stock['forecasted_rv']:.2f}%", class_="stat-row"),
-                                ui.tags.div(f"Current RV: {stock['current_rv']:.2f}%", class_="stat-row"),
-                                ui.tags.div("Different", class_="error-label"),
-                                ui.tags.div(f"{stock['error']:+.2f}%", class_="error-value"),
-                                ui.tags.div("Extra stats: ...", class_="card-tooltip"),
-                                class_=("overview-card positive" if stock['error'] >= 0 else "overview-card negative"),
-                                title=f"{stock['symbol']} | Different: {stock['error']:.2f}% | Forecasted: {stock['forecasted_rv']:.2f}% | Current: {stock['current_rv']:.2f}%"
-                            ) for stock in real_stocks
-                        ] if real_stocks else [
-                            ui.tags.div("No data available for heatmap cards.", style="color:red;font-size:1.5rem;text-align:center;")
-                        ]),
-                        class_="overview-card-grid"
+                                        ui.tags.div(
+                                            [
+                                                "Model Confidence",
+                                                ui.tags.i(class_="fa fa-info-circle info-icon", **{"data-tooltip": "How sure the model is about its predictions. Higher confidence means the model is more certain."})
+                                            ],
+                                            class_="summary-card-title"
+                                        ),
+                                        ui.tags.div("67%", class_="summary-card-value"),
+                                        class_="summary-card-content"
+                                    ),
+                                    ui.tags.div(ui.tags.i(class_="fa fa-chart-line"), class_="summary-card-icon purple"),
+                                    class_="summary-card-overview"
+                                ),
+                                ui.tags.div(
+                                    ui.tags.div(
+                                        ui.tags.div(
+                                            [
+                                                "Last Training",
+                                                ui.tags.i(class_="fa fa-info-circle info-icon", **{"data-tooltip": "How recently the model was updated with new data. More recent training means fresher insights."})
+                                            ],
+                                            class_="summary-card-title"
+                                        ),
+                                        ui.tags.div("2h ago", class_="summary-card-value"),
+                                        class_="summary-card-content"
+                                    ),
+                                    ui.tags.div(ui.tags.i(class_="fa fa-calendar"), class_="summary-card-icon yellow"),
+                                    class_="summary-card-overview"
+                                ),
+                            ],
+                            class_="summary-cards-row-overview"
+                        )
                     ),
-                    style="width:100%;display:flex;flex-direction:column;align-items:center;"
-                ),
-                ui.tags.div(class_="section-separator"),
-                # --- High Attention Pairs Placeholder ---
-                ui.tags.div(
-                    ui.tags.div("High Attention Pairs", class_="attention-pairs-title"),
-                    ui.output_ui("attention_pairs_table"),
-                    class_="attention-pairs-card"
+                    ui.tags.hr(class_="model-section-divider"),
+                    # Heatmap
+                    ui.tags.div(
+                        ui.tags.div("Next-Day Volatility Forecast Heatmap", class_="model-section-title"),
+                        ui.tags.div(
+                            *([
+                                ui.tags.div(
+                                    ui.tags.div(stock["symbol"], class_="stock-symbol"),
+                                    ui.tags.div(stock["name"], class_="company-name"),
+                                    ui.tags.div(f"Forecasted RV: {stock['forecasted_rv']:.2f}%", class_="stat-row"),
+                                    ui.tags.div(f"Current RV: {stock['current_rv']:.2f}%", class_="stat-row"),
+                                    ui.tags.div("Different", class_="error-label"),
+                                    ui.tags.div(f"{stock['error']:+.2f}%", class_="error-value"),
+                                    ui.tags.div("Extra stats: ...", class_="card-tooltip"),
+                                    class_=("overview-card positive" if stock['error'] >= 0 else "overview-card negative"),
+                                    title=f"{stock['symbol']} | Different: {stock['error']:.2f}% | Forecasted: {stock['forecasted_rv']:.2f}% | Current: {stock['current_rv']:.2f}%"
+                                ) for stock in real_stocks
+                            ] if real_stocks else [
+                                ui.tags.div("No data available for heatmap cards.", style="color:red;font-size:1.5rem;text-align:center;")
+                            ]),
+                            class_="overview-card-grid"
+                        )
+                    ),
+                    class_="model-insights-panel"
                 ),
                 class_="main-content-inner"
             )
@@ -1520,7 +1923,7 @@ def server(input, output, session):
     @output
     @render.ui
     def watchlist_ui():
-        # Use the same real_stocks logic as in main_content
+        # Show the same stocks as the heatmap (the 9 stocks in real_stocks)
         try:
             pred_df = pd.read_csv("data/predicted_realized_vol.csv")
             vol_df = pd.read_csv("data/vol_df.csv")
@@ -1541,19 +1944,22 @@ def server(input, output, session):
                         "name": name,
                         "error": error
                     })
-            # Top 7 by absolute error
-            top7 = sorted(real_stocks, key=lambda x: -abs(x["error"]))[:7]
+            # Use the same 5 positive and 4 negative as the heatmap
+            positive_cards = sorted([s for s in real_stocks if s["error"] >= 0], key=lambda x: -x["error"])[:5]
+            negative_cards = sorted([s for s in real_stocks if s["error"] < 0], key=lambda x: x["error"])[:4]
+            heatmap_stocks = positive_cards + negative_cards
             return ui.tags.ul(
                 *[
                     ui.tags.li([
-                        stock["symbol"],
+                        ui.tags.span(stock["symbol"], class_="sidebar-label"),
                         ui.tags.span(
                             f"{stock['error']:+.2f}%",
-                            class_=("pos" if stock["error"] >= 0 else "neg")
+                            class_=("sidebar-pill green" if stock["error"] >= 0 else "sidebar-pill red")
                         )
-                    ]) for stock in top7
+                    ], class_="sidebar-list-item")
+                    for stock in heatmap_stocks
                 ],
-                class_="watchlist-list"
+                class_="sidebar-list"
             )
         except Exception as e:
             return ui.tags.div(f"Error loading watchlist: {e}", style="color:red;")
@@ -1565,40 +1971,26 @@ def server(input, output, session):
             pairs_df = pd.read_csv("data/high_attention_pairs.csv")
             # Sort by absolute weight, take top 7
             pairs = pairs_df.sort_values(by="WEIGHT", key=abs, ascending=False).head(7)
-            return ui.tags.table(
-                ui.tags.thead(
-                    ui.tags.tr(
-                        ui.tags.th("SOURCE"),
-                        ui.tags.th("TARGET"),
-                        ui.tags.th("WEIGHT")
-                    )
-                ),
-                ui.tags.tbody(
-                    *[
-                        ui.tags.tr(
-                            ui.tags.td(row["SOURCE"]),
-                            ui.tags.td(row["TARGET"]),
-                            ui.tags.td(
-            ui.tags.div(
-                                    ui.tags.div(
-                                        class_="attention-pairs-bar" + (" green" if row["WEIGHT"] >= 0.7 else " purple"),
-                                        style=f"width:0%",
-                                        **{"data-width": f"{int(row['WEIGHT']*100)}"}
-                                    ),
-                                    ui.tags.span(
-                                        f"{row['WEIGHT']:.2f}",
-                                        class_="attention-pairs-bar-label" + (" green" if row["WEIGHT"] >= 0.7 else " purple")
-                                    ),
-                                    class_="attention-pairs-bar-bg"
-                                ),
-                            )
-                        ) for _, row in pairs.iterrows()
-                    ]
-                ),
-                class_="attention-pairs-table"
+            return ui.tags.ul(
+                *[
+                    ui.tags.li([
+                        ui.tags.span(f"{row['SOURCE']} → {row['TARGET']}", class_="sidebar-label"),
+                        ui.tags.span(
+                            f"{row['WEIGHT']:.2f}",
+                            class_=("sidebar-pill green" if row["WEIGHT"] >= 0.7 else "sidebar-pill purple")
+                        )
+                    ], class_="sidebar-list-item")
+                    for _, row in pairs.iterrows()
+                ],
+                class_="sidebar-list"
             )
         except Exception as e:
             return ui.tags.div(f"Error loading attention pairs: {e}", style="color:red;")
+
+    @reactive.Effect
+    @reactive.event(input.view_all_stocks_btn)
+    def _():
+        current_page.set("screener")
 
     # Call server logic for each module (if needed)
     server_screener(input, output, session)
