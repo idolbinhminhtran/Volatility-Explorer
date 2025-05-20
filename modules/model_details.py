@@ -3,6 +3,24 @@ from faicons import icon_svg
 import pandas as pd
 import networkx as nx
 import matplotlib.pyplot as plt
+import plotly.graph_objects as go
+
+# Helper to create a consistent panel
+def panel_section(panel_id, title, content, open_by_default=False):
+    return ui.tags.div(
+        ui.tags.div(
+            title,
+            ui.tags.span(icon_svg("chevron-right"), id=f"chevron-{panel_id}", class_="collapsible-chevron" + (" open" if open_by_default else "")),
+            class_="collapsible-header",
+            onclick=f"togglePanel('{panel_id}')"
+        ),
+        ui.tags.div(
+            content,
+            class_="collapsible-content" + ("" if open_by_default else " closed"),
+            id=f"content-{panel_id}"
+        ),
+        class_="collapsible-panel"
+    )
 
 def ui_model_details():
     custom_css = """
@@ -141,21 +159,26 @@ def ui_model_details():
     /* Model Metrics */
     .model-summary-row {
       display: flex;
-      gap: 2.2rem;
+      gap: 1.2rem;
       margin-bottom: 0;
       justify-content: flex-start;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
+    }
+    @media (max-width: 900px) {
+      .model-summary-row { flex-wrap: wrap; }
     }
     .model-summary-card {
       background: rgba(36,38,44,0.92);
       border-radius: 1.2rem;
       box-shadow: 0 4px 24px 0 #1db95422, 0 1.5px 0 0 #1db954;
       border: 2.5px solid rgba(167,139,250,0.13);
-      padding: 1.5rem 2.1rem 1.3rem 1.7rem;
-      min-width: 210px;
+      padding: 1.1rem 1.2rem 1.1rem 1.2rem;
+      min-width: 150px;
+      max-width: 220px;
+      flex: 1 1 0;
       display: flex;
       align-items: center;
-      gap: 1.1rem;
+      gap: 0.7rem;
       position: relative;
       transition: box-shadow 0.3s, border 0.3s, background 0.5s;
       cursor: pointer;
@@ -414,178 +437,100 @@ document.addEventListener('DOMContentLoaded', function() {
         ui.tags.style(custom_css),
         ui.tags.script(custom_js),
         ui.tags.div(
-            ui.tags.div(
-                # --- Model Introduction Panel ---
+            # Model Introduction
+            panel_section(
+                "intro",
+                "Model Introduction",
                 ui.tags.div(
                     ui.tags.div(
-                        "Model Introduction",
-                        ui.tags.span(icon_svg("chevron-right"), id="chevron-intro", class_="collapsible-chevron"),
-                        class_="collapsible-header",
-                        onclick="togglePanel('intro')"
+                        "Volatility prediction remains a core challenge in financial markets due to its complex and dynamic nature.",
+                        class_="model-intro-subtitle"
                     ),
                     ui.tags.div(
                         ui.tags.div(
-                            "Volatility prediction remains a core challenge in financial markets due to its complex and dynamic nature.",
-                            class_="model-intro-subtitle"
+                            ui.tags.div(icon_svg("lightbulb"), class_="model-intro-icon"),
+                            ui.tags.div("Problem:", class_="model-intro-label"),
+                            ui.tags.div("Traditional linear models often fall short – they assume independence and static relationships that don't reflect real market conditions.", class_="model-intro-text"),
+                            class_="model-intro-col"
                         ),
                         ui.tags.div(
-                            ui.tags.div(
-                                ui.tags.div(icon_svg("lightbulb"), class_="model-intro-icon"),
-                                ui.tags.div("Problem:", class_="model-intro-label"),
-                                ui.tags.div("Traditional linear models often fall short – they assume independence and static relationships that don't reflect real market conditions.", class_="model-intro-text"),
-                                class_="model-intro-col"
-                            ),
-                            ui.tags.div(
-                                ui.tags.div(icon_svg("bullseye"), class_="model-intro-icon"),
-                                ui.tags.div("To combat this:", class_="model-intro-label"),
-                                ui.tags.div("A graph-based neural network models assets as interconnected nodes, capturing both temporal trends and cross-asset dependencies to improve volatility predictions.", class_="model-intro-text"),
-                                class_="model-intro-col"
-                            ),
-                            class_="model-intro-row"
+                            ui.tags.div(icon_svg("bullseye"), class_="model-intro-icon"),
+                            ui.tags.div("To combat this:", class_="model-intro-label"),
+                            ui.tags.div("A graph-based neural network models assets as interconnected nodes, capturing both temporal trends and cross-asset dependencies to improve volatility predictions.", class_="model-intro-text"),
+                            class_="model-intro-col"
                         ),
-                        class_="collapsible-content closed",
-                        id="content-intro"
+                        class_="model-intro-row"
                     ),
-                    class_="collapsible-panel"
-                ),
-                # --- Model Evaluation Panel (now above Metrics) ---
-                ui.tags.div(
-                    ui.tags.div(
-                        "Model Evaluation",
-                        ui.tags.span(icon_svg("chevron-right"), id="chevron-eval", class_="collapsible-chevron"),
-                        class_="collapsible-header",
-                        onclick="togglePanel('eval')"
-                    ),
-                    ui.tags.div(
-                        ui.tags.div(
-                            ui.tags.div(
-                                ui.tags.div(
-                                    ui.tags.div(class_="split-train"),
-                                    ui.tags.div(class_="split-val"),
-                                    ui.tags.div(class_="split-test"),
-                                    class_="split-bar"
-                                ),
-                                ui.tags.div(
-                                    ui.tags.span("Train (80%)", class_="split-label split-label-train"),
-                                    ui.tags.span("Validation (10%)", class_="split-label split-label-val"),
-                                    ui.tags.span("Test (10%)", class_="split-label split-label-test"),
-                                    class_="split-labels"
-                                ),
-                                class_="split-bar-container"
-                            ),
-                            ui.tags.div(
-                                "The dataset is split into three contiguous time blocks: 80% for training, 10% for validation, and 10% for testing. This approach preserves the natural temporal order of the data, ensuring that the model is always evaluated on future data it has never seen. By avoiding random shuffling, we prevent data leakage and create a more realistic assessment of model performance in real-world forecasting.",
-                                class_="model-eval-desc"
-                            ),
-                            class_="collapsible-content closed",
-                            id="content-eval"
-                        ),
-                        class_="collapsible-panel"
-                    ),
-                ),
-                # --- Model Metrics Panel (now below Evaluation) ---
-                ui.tags.div(
-                    ui.tags.div(
-                        "Model Metrics",
-                        ui.tags.span(icon_svg("chevron-right"), id="chevron-metrics", class_="collapsible-chevron"),
-                        class_="collapsible-header",
-                        onclick="togglePanel('metrics')"
-                    ),
-                    ui.tags.div(
-                        ui.tags.div(
-                            ui.tags.div(
-                                ui.tags.div(icon_svg("chart-simple"), class_="model-summary-icon rmse"),
-                                ui.tags.div(
-                                    ui.tags.div("RMSE", class_="model-summary-label"),
-                                    ui.tags.span("0.3325", class_="model-summary-value"),
-                                    class_="model-summary-content"
-                                ),
-                                ui.tags.div("Root Mean Square Error: Measures the average magnitude of prediction errors. Lower is better.", class_="metric-tooltip"),
-                                class_="model-summary-card"
-                            ),
-                            ui.tags.div(
-                                ui.tags.div(icon_svg("percent"), class_="model-summary-icon rmspe"),
-                                ui.tags.div(
-                                    ui.tags.div("RMSPE", class_="model-summary-label"),
-                                    ui.tags.span("33.25%", class_="model-summary-value"),
-                                    class_="model-summary-content"
-                                ),
-                                ui.tags.div("Root Mean Square Percentage Error: Expresses average prediction error as a percentage of the true value. Lower is better.", class_="metric-tooltip"),
-                                class_="model-summary-card"
-                            ),
-                            ui.tags.div(
-                                ui.tags.div(icon_svg("circle-info"), class_="model-summary-icon qlike"),
-                                ui.tags.div(
-                                    ui.tags.div("QLIKE", class_="model-summary-label"),
-                                    ui.tags.span("5.59%", class_="model-summary-value"),
-                                    class_="model-summary-content"
-                                ),
-                                ui.tags.div("QLIKE: A scale-sensitive error metric. Lower values indicate less scale error.", class_="metric-tooltip"),
-                                class_="model-summary-card"
-                            ),
-                            ui.tags.div(
-                                ui.tags.div(icon_svg("star"), class_="model-summary-icon f1"),
-                                ui.tags.div(
-                                    ui.tags.div("F1 Score", class_="model-summary-label"),
-                                    ui.tags.span("0.82", class_="model-summary-value"),
-                                    class_="model-summary-content"
-                                ),
-                                ui.tags.div("F1 Score: Harmonic mean of precision and recall for high-volatility detection.", class_="metric-tooltip"),
-                                class_="model-summary-card"
-                            ),
-                            ui.tags.div(
-                                ui.tags.div(icon_svg("chart-area"), class_="model-summary-icon auc"),
-                                ui.tags.div(
-                                    ui.tags.div("AUC", class_="model-summary-label"),
-                                    ui.tags.span("0.91", class_="model-summary-value"),
-                                    class_="model-summary-content"
-                                ),
-                                ui.tags.div("AUC: Probability the model ranks a high-volatility period above a low one.", class_="metric-tooltip"),
-                                class_="model-summary-card"
-                            ),
-                            class_="model-summary-row"
-                        ),
-                        class_="collapsible-content closed",
-                        id="content-metrics"
-                    ),
-                    class_="collapsible-panel"
-                ),
-                # --- Model Comparison Panel ---
-                ui.tags.div(
-                    ui.tags.div(
-                        "Model Comparison",
-                        ui.tags.span(icon_svg("chevron-right"), id="chevron-comparison", class_="collapsible-chevron"),
-                        class_="collapsible-header",
-                        onclick="togglePanel('comparison')"
-                    ),
-                    ui.tags.div(
-                        ui.tags.div(
-                            ui.tags.i(class_="fa fa-chart-bar"),
-                            ui.tags.div("Comparison plot coming soon...", style="margin-top:1.2rem;font-size:1.18rem;color:#bdbdbd;font-family:'Inter',sans-serif;font-weight:700;"),
-                            class_="model-comparison-placeholder"
-                        ),
-                        class_="collapsible-content closed",
-                        id="content-comparison"
-                    ),
-                    class_="collapsible-panel"
-                ),
-                # --- Network View Panel ---
-                ui.tags.div(
-                    ui.tags.div(
-                        "Network View",
-                        ui.tags.span(icon_svg("chevron-right"), id="chevron-network", class_="collapsible-chevron"),
-                        class_="collapsible-header",
-                        onclick="togglePanel('network')"
-                    ),
-                    ui.tags.div(
-                        ui.output_ui("network_graph_ui"),
-                        class_="collapsible-content closed",
-                        id="content-network"
-                    ),
-                    class_="collapsible-panel"
-                ),
-                class_="model-section-group"
+                )
             ),
+            # Model Evaluation
+            panel_section(
+                "eval",
+                "Model Evaluation",
+                ui.tags.div(
+                    ui.output_ui("temporal_split_plot"),
+                    ui.output_ui("training_flow_diagram"),
+                    ui.tags.div(
+                        "The dataset is split into three contiguous time blocks: 80% for training, 10% for validation, and 10% for testing. This approach preserves the natural temporal order of the data, ensuring that the model is always evaluated on future data it has never seen. By avoiding random shuffling, we prevent data leakage and create a more realistic assessment of model performance in real-world forecasting.",
+                        class_="model-eval-desc"
+                    ),
+                )
+            ),
+            # Model Metrics
+            panel_section(
+                "metrics",
+                "Model Metrics",
+                ui.tags.div(
+                    ui.tags.div(
+                        ui.tags.div(icon_svg("chart-simple"), class_="model-summary-icon rmse"),
+                        ui.tags.div(
+                            ui.tags.div("RMSE", class_="model-summary-label"),
+                            ui.tags.span("0.3325", class_="model-summary-value"),
+                            class_="model-summary-content"
+                        ),
+                        ui.tags.div("Root Mean Square Error: Measures the average magnitude of prediction errors. Lower is better.", class_="metric-tooltip"),
+                        class_="model-summary-card"
+                    ),
+                    ui.tags.div(
+                        ui.tags.div(icon_svg("percent"), class_="model-summary-icon rmspe"),
+                        ui.tags.div(
+                            ui.tags.div("RMSPE", class_="model-summary-label"),
+                            ui.tags.span("33.25%", class_="model-summary-value"),
+                            class_="model-summary-content"
+                        ),
+                        ui.tags.div("Root Mean Square Percentage Error: Expresses average prediction error as a percentage of the true value. Lower is better.", class_="metric-tooltip"),
+                        class_="model-summary-card"
+                    ),
+                    ui.tags.div(
+                        ui.tags.div(icon_svg("circle-info"), class_="model-summary-icon qlike"),
+                        ui.tags.div(
+                            ui.tags.div("QLIKE", class_="model-summary-label"),
+                            ui.tags.span("5.59%", class_="model-summary-value"),
+                            class_="model-summary-content"
+                        ),
+                        ui.tags.div("QLIKE: A scale-sensitive error metric. Lower values indicate less scale error.", class_="metric-tooltip"),
+                        class_="model-summary-card"
+                    ),
+                    class_="model-summary-row"
+                )
+            ),
+            # Model Comparison
+            panel_section(
+                "comparison",
+                "Model Comparison",
+                ui.tags.div(
+                    ui.tags.i(class_="fa fa-chart-bar"),
+                    ui.tags.div("Comparison plot coming soon...", style="margin-top:1.2rem;font-size:1.18rem;color:#bdbdbd;font-family:'Inter',sans-serif;font-weight:700;"),
+                    class_="model-comparison-placeholder"
+                )
+            ),
+            # Network View
+            panel_section(
+                "network",
+                "Network View",
+                ui.output_ui("network_graph_ui")
+            ),
+            class_="model-section-group",
             style="width:100vw;display:flex;flex-direction:column;align-items:center;justify-content:center;"
         )
     )
@@ -626,3 +571,96 @@ def server_model_details(input, output, session):
             )
         except Exception as e:
             return ui.tags.div(f"Error rendering network: {e}", style="text-align:center;color:#a78bfa;font-size:1.2rem;padding:2.5rem 0;", class_="model-network-plot-wrap")
+
+    @output
+    @render.ui
+    def temporal_split_plot():
+        return ui.HTML("""
+<div class="temporal-split-bar-wrap">
+  <div class="temporal-split-bar">
+    <div class="split-segment train">
+      <span class="split-tooltip">Train: 80%</span>
+    </div>
+    <div class="split-segment val">
+      <span class="split-tooltip">Validation: 10%</span>
+    </div>
+    <div class="split-segment test">
+      <span class="split-tooltip">Test: 10%</span>
+    </div>
+  </div>
+</div>
+<style>
+.temporal-split-bar-wrap { width: 100%; max-width: 700px; margin: 0 auto 2.2rem auto; }
+.temporal-split-bar {
+  display: flex; height: 3.5rem; border-radius: 2rem; overflow: visible;
+  box-shadow: 0 4px 24px #000a; background: #23272f;
+  position: relative;
+}
+.split-segment {
+  height: 100%; transition: background 0.3s, box-shadow 0.3s, transform 0.2s; position: relative;
+  box-shadow: 0 0 16px 0 rgba(29,185,84,0.12), 0 2px 8px 0 rgba(167,139,250,0.10);
+  overflow: visible;
+}
+.split-segment.train { width: 80%; background: linear-gradient(90deg, #1db954 60%, #43e97b 100%); box-shadow: 0 0 24px 0 #1db95455; }
+.split-segment.val { width: 10%; background: linear-gradient(90deg, #a78bfa 60%, #7c3aed 100%); box-shadow: 0 0 24px 0 #a78bfa55; }
+.split-segment.test { width: 10%; background: linear-gradient(90deg, #fbbf24 60%, #f59e42 100%); box-shadow: 0 0 24px 0 #fbbf2455; }
+.split-segment:hover {
+  filter: brightness(1.12);
+  transform: scale(1.03);
+  z-index: 2;
+  box-shadow: 0 0 32px 0 #fff5, 0 0 24px 0 #1db95455;
+}
+.split-tooltip {
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  left: 50%;
+  top: 110%;
+  transform: translateX(-50%);
+  background: #23272f;
+  color: #fff;
+  padding: 0.7rem 1.2rem;
+  border-radius: 0.9rem;
+  font-size: 1.13rem;
+  font-weight: 900;
+  white-space: nowrap;
+  box-shadow: 0 2px 12px #1db95422;
+  z-index: 10;
+  transition: opacity 0.2s, visibility 0.2s;
+  pointer-events: none;
+}
+.split-segment:hover .split-tooltip {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+}
+</style>
+""")
+
+    @output
+    @render.ui
+    def training_flow_diagram():
+        return ui.HTML("""
+<div class="training-flow-diagram">
+  <div class="flow-block train" title="Train: 80%">Train</div>
+  <svg class="flow-arrow" width="60" height="32"><polygon points="0,16 50,16 40,8 40,24" fill="#fff"/></svg>
+  <div class="flow-block val" title="Validation: 10%">Validation</div>
+  <svg class="flow-arrow" width="60" height="32"><polygon points="0,16 50,16 40,8 40,24" fill="#fff"/></svg>
+  <div class="flow-block test" title="Test: 10%">Test</div>
+</div>
+<style>
+.training-flow-diagram {
+  display: flex; align-items: center; justify-content: center; gap: 0.7rem; margin: 2.2rem 0;
+}
+.flow-block {
+  padding: 0.9rem 2.2rem; border-radius: 1.2rem; font-size: 1.18rem; font-weight: 900;
+  font-family: 'Inter', sans-serif; color: #23272f; box-shadow: 0 2px 12px #1db95422;
+  transition: filter 0.2s;
+}
+.flow-block.train { background: linear-gradient(135deg, #1db954 60%, #43e97b 100%); }
+.flow-block.val { background: linear-gradient(135deg, #a78bfa 60%, #7c3aed 100%); }
+.flow-block.test { background: linear-gradient(135deg, #fbbf24 60%, #f59e42 100%); }
+.flow-block:hover { filter: brightness(1.15); cursor: pointer; }
+.flow-arrow { display: inline-block; vertical-align: middle; }
+</style>
+""")
