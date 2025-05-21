@@ -1,4 +1,4 @@
-from shiny import ui, render
+from shiny import ui, render, reactive
 from faicons import icon_svg
 import pandas as pd
 import networkx as nx
@@ -10,7 +10,7 @@ def panel_section(panel_id, title, content, open_by_default=False):
     return ui.tags.div(
         ui.tags.div(
             title,
-            ui.tags.span(icon_svg("chevron-right"), id=f"chevron-{panel_id}", class_="collapsible-chevron" + (" open" if open_by_default else "")),
+            ui.tags.div(ui.tags.i(class_="fa fa-chevron-right"), id=f"chevron-{panel_id}", class_="collapsible-chevron" + (" open" if open_by_default else "")),
             class_="collapsible-header",
             onclick=f"togglePanel('{panel_id}')"
         ),
@@ -29,7 +29,7 @@ def ui_model_details():
       flex-direction: column;
       align-items: center;
       width: 100%;
-      max-width: 900px;
+      max-width: 1100px;
       margin: 0 auto;
       gap: 2.2rem;
       justify-content: center;
@@ -100,6 +100,117 @@ def ui_model_details():
       from { opacity: 0; transform: translateY(24px); }
       to { opacity: 1; transform: translateY(0); }
     }
+    
+    /* --- Page Section Styles --- */
+    .page-header {
+      width: 100%;
+      text-align: center;
+      margin-bottom: 1rem;
+      padding-top: 0.5rem;
+    }
+    
+    .page-title {
+      font-size: 2rem;
+      font-weight: 800;
+      color: #1db954;
+      margin-bottom: 0.5rem;
+      text-shadow: 0 0 10px rgba(29, 185, 84, 0.3);
+      background: linear-gradient(90deg, #1db954 40%, #a78bfa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: inline-block;
+    }
+    
+    .page-subtitle {
+      font-size: 1rem;
+      color: #e0e0e0;
+      max-width: 800px;
+      margin: 0 auto;
+      line-height: 1.5;
+    }
+    
+    /* --- Model Info Cards --- */
+    .info-cards-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.2rem;
+      margin-bottom: 2rem;
+      width: 100%;
+      justify-content: center;
+    }
+    
+    .info-card {
+      flex: 1;
+      min-width: 240px;
+      max-width: 300px;
+      background: rgba(36, 38, 44, 0.92);
+      border-radius: 1rem;
+      padding: 1.2rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      border: 1px solid rgba(167, 139, 250, 0.15);
+      transition: all 0.3s ease;
+    }
+    
+    .info-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 36px rgba(29, 185, 84, 0.2);
+      border-color: rgba(29, 185, 84, 0.4);
+    }
+    
+    .info-card-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1rem;
+      gap: 0.8rem;
+    }
+    
+    .info-card-icon {
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      background: rgba(29, 185, 84, 0.15);
+      color: #1db954;
+    }
+    
+    .info-card-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #e0e0e0;
+    }
+    
+    .info-card-content {
+      color: #a0a0a0;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      margin-bottom: 0.3rem;
+      height: 4rem;
+      overflow: hidden;
+    }
+    
+    .metric-value {
+      font-size: 1.4rem;
+      font-weight: 800;
+      margin-top: 0.3rem;
+      margin-bottom: 0.3rem;
+      color: #1db954;
+    }
+    
+    .info-card.purple .info-card-icon {
+      background: rgba(167, 139, 250, 0.15);
+      color: #a78bfa;
+    }
+    
+    .info-card.purple .metric-value {
+      color: #a78bfa;
+    }
+    
     /* Model Introduction */
     .model-intro-subtitle {
       font-size: 1.25rem;
@@ -252,6 +363,407 @@ def ui_model_details():
       opacity: 1;
       pointer-events: auto;
     }
+    
+    /* Stock Interpretation Styles */
+    .model-interp-subtitle {
+      font-size: 1.25rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 1.8rem;
+      color: #e0e0e0;
+      font-family: 'Inter', sans-serif;
+      position: relative;
+      padding-bottom: 1rem;
+    }
+    
+    .model-interp-subtitle::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: 0;
+      width: 120px;
+      height: 3px;
+      background: linear-gradient(90deg, #1db954, #a78bfa);
+      transform: translateX(-50%);
+      border-radius: 3px;
+    }
+    
+    .stock-interp-header {
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+    
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+      gap: 0.8rem;
+    }
+    
+    .section-header i {
+      font-size: 1.3rem;
+      color: #1db954;
+    }
+    
+    .section-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #1db954;
+      text-shadow: 0 0 10px rgba(29, 185, 84, 0.3);
+    }
+    
+    .interp-controls-container {
+      width: 100%;
+      margin-bottom: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .interp-controls-row {
+      display: flex;
+      gap: 1.5rem;
+      width: 100%;
+      max-width: 800px;
+      align-items: flex-end;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    
+    .interp-control {
+      flex: 1;
+      min-width: 150px;
+      max-width: 250px;
+    }
+    
+    .analyze-btn {
+      background: linear-gradient(90deg, #1db954 60%, #43e97b 100%);
+      color: white;
+      font-weight: 700;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 24px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      width: 100%;
+      box-shadow: 0 4px 15px rgba(29, 185, 84, 0.3);
+      position: relative;
+      overflow: hidden;
+      letter-spacing: 0.05em;
+    }
+    
+    .analyze-btn::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(
+        to bottom right,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.2) 50%,
+        rgba(255, 255, 255, 0) 100%
+      );
+      transform: rotate(45deg);
+      transition: transform 0.8s;
+      z-index: 1;
+    }
+    
+    .analyze-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(29, 185, 84, 0.5);
+    }
+    
+    .analyze-btn:hover::before {
+      transform: rotate(45deg) translateX(100%);
+    }
+    
+    .prediction-metrics-section {
+      width: 100%;
+      margin: 1rem 0 2rem 0;
+    }
+    
+    .metrics-container {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+    
+    .metric-card {
+      background: rgba(36, 38, 44, 0.92);
+      border-radius: 1rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      padding: 1.5rem;
+      min-width: 280px;
+      max-width: 600px;
+      width: 100%;
+      border: 1px solid rgba(167, 139, 250, 0.15);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .metric-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 1rem;
+      padding: 1.5px;
+      background: linear-gradient(130deg, #1db954, #a78bfa, #1db954);
+      background-size: 200% 200%;
+      animation: gradient-move 6s ease infinite;
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      opacity: 0.5;
+      z-index: 0;
+    }
+    
+    .metric-card-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #1db954;
+      margin-bottom: 1.2rem;
+      text-align: center;
+      position: relative;
+      text-shadow: 0 0 10px rgba(29, 185, 84, 0.3);
+    }
+    
+    .metric-values-container {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      gap: 1.2rem;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .metric-value-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0.8rem;
+      background: rgba(30, 32, 39, 0.7);
+      border-radius: 0.8rem;
+      min-width: 140px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .metric-value-item:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 15px rgba(29, 185, 84, 0.15);
+    }
+    
+    .metric-label {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #a0a0a0;
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    .metric-value {
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+    }
+    
+    .metric-value.prediction {
+      color: #1db954;
+      text-shadow: 0 0 8px rgba(29, 185, 84, 0.3);
+    }
+    
+    .metric-value.actual {
+      color: #a78bfa;
+      text-shadow: 0 0 8px rgba(167, 139, 250, 0.3);
+    }
+    
+    .metric-value.error {
+      color: #f87171;
+      text-shadow: 0 0 8px rgba(248, 113, 113, 0.3);
+    }
+    
+    .interp-plots-row {
+      display: flex;
+      gap: 1.5rem;
+      width: 100%;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+    }
+    
+    .plot-container {
+      flex: 1;
+      min-width: 300px;
+      max-width: 600px;
+      background: rgba(36, 38, 44, 0.92);
+      border-radius: 1rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      padding: 1rem;
+      overflow: hidden;
+      border: 1px solid rgba(167, 139, 250, 0.15);
+      transition: all 0.3s ease;
+      position: relative;
+    }
+    
+    .plot-container::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #1db954, #a78bfa);
+      border-radius: 1rem 1rem 0 0;
+      opacity: 0.7;
+      transition: opacity 0.3s ease;
+    }
+    
+    .plot-container:hover {
+      transform: translateY(-5px);
+      border-color: rgba(29, 185, 84, 0.4);
+      box-shadow: 0 15px 40px rgba(29, 185, 84, 0.2);
+    }
+    
+    .plot-container:hover::before {
+      opacity: 1;
+    }
+    
+    @media (max-width: 768px) {
+      .plot-container {
+        min-width: 100%;
+        margin-bottom: 1.5rem;
+      }
+    }
+    
+    .interp-neighbors-container {
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto 2rem;
+    }
+    
+    .neighbors-container {
+      background: rgba(36, 38, 44, 0.92);
+      border-radius: 1rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      padding: 1.8rem;
+      width: 100%;
+      border: 1px solid rgba(167, 139, 250, 0.15);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .neighbors-container::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 1rem;
+      padding: 1.5px;
+      background: linear-gradient(130deg, #1db954, #a78bfa, #1db954);
+      background-size: 200% 200%;
+      animation: gradient-move 6s ease infinite;
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      opacity: 0.4;
+      z-index: 0;
+    }
+    
+    .neighbors-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #1db954;
+      margin-bottom: 1.8rem;
+      text-align: center;
+      position: relative;
+      text-shadow: 0 0 10px rgba(29, 185, 84, 0.3);
+      z-index: 1;
+    }
+    
+    .neighbors-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1.3rem;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .neighbor-row {
+      display: flex;
+      align-items: center;
+      gap: 1.2rem;
+      padding: 0.7rem 1rem;
+      border-radius: 0.8rem;
+      background: rgba(30, 32, 39, 0.7);
+      transition: transform 0.3s ease, background 0.3s ease;
+    }
+    
+    .neighbor-row:hover {
+      transform: translateX(5px);
+      background: rgba(35, 38, 45, 0.95);
+    }
+    
+    .neighbor-stock {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+      width: 120px;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+    }
+    
+    .influence-bar-container {
+      flex: 1;
+      height: 14px;
+      background: rgba(167, 139, 250, 0.1);
+      border-radius: 7px;
+      overflow: hidden;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+    
+    .influence-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #1db954 60%, #43e97b 100%);
+      border-radius: 7px;
+      box-shadow: 0 0 8px rgba(29, 185, 84, 0.4);
+      transition: width 1s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+    
+    .influence-value {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: #a78bfa;
+      width: 60px;
+      text-align: right;
+      text-shadow: 0 0 8px rgba(167, 139, 250, 0.3);
+    }
+    
+    @media (max-width: 768px) {
+      .neighbor-row {
+        flex-wrap: wrap;
+      }
+      
+      .neighbor-stock {
+        width: 100%;
+        margin-bottom: 0.5rem;
+      }
+      
+      .influence-bar-container {
+        flex: 1 0 70%;
+      }
+      
+      .influence-value {
+        width: auto;
+        flex: 1;
+        text-align: right;
+      }
+    }
     /* Model Evaluation */
     .model-eval-section {
       background: rgba(36,38,44,0.97);
@@ -340,48 +852,6 @@ def ui_model_details():
       font-weight: 500;
       letter-spacing: 0.01em;
     }
-    .model-comparison-placeholder {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 260px;
-      background: rgba(36,38,44,0.92);
-      border-radius: 1.2rem;
-      box-shadow: 0 2px 12px #1db95422;
-      margin: 2.2rem 0 1.2rem 0;
-      padding: 2.2rem 1.5rem 1.7rem 1.5rem;
-      color: #bdbdbd;
-      font-size: 1.25rem;
-      font-family: 'Inter', sans-serif;
-      font-weight: 700;
-      text-align: center;
-      gap: 1.2rem;
-    }
-    .model-comparison-placeholder .fa {
-      font-size: 3.5rem;
-      color: #a78bfa;
-      margin-bottom: 0.7rem;
-      filter: drop-shadow(0 0 8px #1db954);
-    }
-    .model-network-plot-wrap {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 260px;
-      background: rgba(36,38,44,0.92);
-      border-radius: 1.2rem;
-      box-shadow: 0 2px 12px #1db95422;
-      margin: 2.2rem 0 1.2rem 0;
-      padding: 2.2rem 1.5rem 1.7rem 1.5rem;
-      color: #bdbdbd;
-      font-size: 1.25rem;
-      font-family: 'Inter', sans-serif;
-      font-weight: 700;
-      text-align: center;
-      gap: 1.2rem;
-    }
     """
     custom_js = """
 window.togglePanel = function(id) {
@@ -402,6 +872,10 @@ window.togglePanel = function(id) {
         if (labels) labels.classList.add('animated');
       }, 100);
     }
+    // Animate influence bars if opening the stock interpretation panel
+    if (id === 'stock_interp') {
+      setTimeout(animateInfluenceBars, 500);
+    }
   } else {
     content.classList.add('closed');
     chevron.classList.remove('open');
@@ -417,6 +891,18 @@ window.togglePanel = function(id) {
     }
   }
 };
+
+// Function to animate influence bars
+function animateInfluenceBars() {
+  document.querySelectorAll('.influence-bar').forEach(function(bar) {
+    if (bar.dataset.value) {
+      setTimeout(function() {
+        bar.style.width = bar.dataset.value + '%';
+      }, 100 + Math.random() * 300);
+    }
+  });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   setTimeout(function() {
     // Animate split bar if Model Evaluation panel is open by default
@@ -430,6 +916,17 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       if (labels) labels.classList.add('animated');
     }
+    
+    // If stock interpretation panel is open by default, animate the bars
+    var stockInterpPanel = document.getElementById('content-stock_interp');
+    if (stockInterpPanel && !stockInterpPanel.classList.contains('closed')) {
+      animateInfluenceBars();
+    }
+    
+    // Animate bars when clicking Analyze button too
+    document.getElementById('analyze_stock_btn').addEventListener('click', function() {
+      setTimeout(animateInfluenceBars, 800);
+    });
   }, 200);
 });
 """
@@ -437,99 +934,128 @@ document.addEventListener('DOMContentLoaded', function() {
         ui.tags.style(custom_css),
         ui.tags.script(custom_js),
         ui.tags.div(
-            # Model Introduction
-            panel_section(
-                "intro",
-                "Model Introduction",
+            # Page Header
+            ui.tags.div(
+                ui.tags.h1("Stock Volatility Model Explorer", class_="page-title"),
+                ui.tags.p(
+                    "Visualize stock volatility predictions and understand the factors that influence model decisions for individual stocks.",
+                    class_="page-subtitle"
+                ),
+                class_="page-header"
+            ),
+            
+            # Key Model Metrics Cards
+            ui.tags.div(
                 ui.tags.div(
                     ui.tags.div(
-                        "Volatility prediction remains a core challenge in financial markets due to its complex and dynamic nature.",
-                        class_="model-intro-subtitle"
+                        ui.tags.div(ui.tags.i(class_="fa fa-chart-simple"), class_="info-card-icon"),
+                        ui.tags.div("Root Mean Square Error", class_="info-card-title"),
+                        class_="info-card-header"
                     ),
                     ui.tags.div(
-                        ui.tags.div(
-                            ui.tags.div(icon_svg("lightbulb"), class_="model-intro-icon"),
-                            ui.tags.div("Problem:", class_="model-intro-label"),
-                            ui.tags.div("Traditional linear models often fall short – they assume independence and static relationships that don't reflect real market conditions.", class_="model-intro-text"),
-                            class_="model-intro-col"
-                        ),
-                        ui.tags.div(
-                            ui.tags.div(icon_svg("bullseye"), class_="model-intro-icon"),
-                            ui.tags.div("To combat this:", class_="model-intro-label"),
-                            ui.tags.div("A graph-based neural network models assets as interconnected nodes, capturing both temporal trends and cross-asset dependencies to improve volatility predictions.", class_="model-intro-text"),
-                            class_="model-intro-col"
-                        ),
-                        class_="model-intro-row"
+                        "Measures the average magnitude of prediction errors across all stocks.",
+                        class_="info-card-content"
                     ),
-                )
+                    ui.tags.div("0.3325", class_="metric-value"),
+                    class_="info-card"
+                ),
+                ui.tags.div(
+                    ui.tags.div(
+                        ui.tags.div(ui.tags.i(class_="fa fa-percent"), class_="info-card-icon"),
+                        ui.tags.div("RMSPE", class_="info-card-title"),
+                        class_="info-card-header"
+                    ),
+                    ui.tags.div(
+                        "Root Mean Square Percentage Error expresses average error as a percentage of true value.",
+                        class_="info-card-content"
+                    ),
+                    ui.tags.div("33.25%", class_="metric-value"),
+                    class_="info-card"
+                ),
+                ui.tags.div(
+                    ui.tags.div(
+                        ui.tags.div(ui.tags.i(class_="fa fa-circle-info"), class_="info-card-icon purple"),
+                        ui.tags.div("QLIKE", class_="info-card-title"),
+                        class_="info-card-header"
+                    ),
+                    ui.tags.div(
+                        "Scale-sensitive error metric that penalizes under-predictions more than over-predictions.",
+                        class_="info-card-content"
+                    ),
+                    ui.tags.div("5.59%", class_="metric-value"),
+                    class_="info-card purple"
+                ),
+                ui.tags.div(
+                    ui.tags.div(
+                        ui.tags.div(ui.tags.i(class_="fa fa-lightbulb"), class_="info-card-icon purple"),
+                        ui.tags.div("Model Approach", class_="info-card-title"),
+                        class_="info-card-header"
+                    ),
+                    ui.tags.div(
+                        "Graph-based neural network that captures both temporal trends and cross-asset dependencies to improve volatility predictions.",
+                        class_="info-card-content"
+                    ),
+                    class_="info-card purple"
+                ),
+                class_="info-cards-container"
             ),
-            # Model Evaluation
+            
+            # Stock Interpretation - MAIN SECTION
+            panel_section(
+                "stock_interp",
+                "Stock-Level Interpretation",
+                ui.output_ui("stock_interpretation_ui"),
+                open_by_default=True
+            ),
+            
+            # Key Model Details in Collapsibles
             panel_section(
                 "eval",
-                "Model Evaluation",
+                "Training Approach",
                 ui.tags.div(
                     ui.output_ui("temporal_split_plot"),
                     ui.output_ui("training_flow_diagram"),
+                    ui.output_ui("model_workflow_diagram"),
                     ui.tags.div(
-                        "The dataset is split into three contiguous time blocks: 80% for training, 10% for validation, and 10% for testing. This approach preserves the natural temporal order of the data, ensuring that the model is always evaluated on future data it has never seen. By avoiding random shuffling, we prevent data leakage and create a more realistic assessment of model performance in real-world forecasting.",
+                        "The dataset is split into three contiguous time blocks: 80% for training, 10% for validation, and 10% for testing. This approach preserves the natural temporal order of the data, ensuring that the model is always evaluated on future data it has never seen.",
                         class_="model-eval-desc"
                     ),
                 )
             ),
-            # Model Metrics
+            
+            # Compact Model Introduction
             panel_section(
-                "metrics",
-                "Model Metrics",
+                "model",
+                "Model Details",
                 ui.tags.div(
                     ui.tags.div(
-                        ui.tags.div(icon_svg("chart-simple"), class_="model-summary-icon rmse"),
-                        ui.tags.div(
-                            ui.tags.div("RMSE", class_="model-summary-label"),
-                            ui.tags.span("0.3325", class_="model-summary-value"),
-                            class_="model-summary-content"
-                        ),
-                        ui.tags.div("Root Mean Square Error: Measures the average magnitude of prediction errors. Lower is better.", class_="metric-tooltip"),
-                        class_="model-summary-card"
+                        "Our graph-based model addresses the limitations of traditional linear approaches by treating assets as interconnected nodes within a financial network.",
+                        class_="model-intro-subtitle"
                     ),
                     ui.tags.div(
-                        ui.tags.div(icon_svg("percent"), class_="model-summary-icon rmspe"),
                         ui.tags.div(
-                            ui.tags.div("RMSPE", class_="model-summary-label"),
-                            ui.tags.span("33.25%", class_="model-summary-value"),
-                            class_="model-summary-content"
+                            ui.tags.div(ui.tags.i(class_="fa fa-brain"), class_="model-intro-icon"),
+                            ui.tags.div("Graph Neural Network", class_="model-intro-label"),
+                            ui.tags.div("Models complex relationships between stocks, capturing how volatility in one asset can propagate through the market.", class_="model-intro-text"),
+                            class_="model-intro-col"
                         ),
-                        ui.tags.div("Root Mean Square Percentage Error: Expresses average prediction error as a percentage of the true value. Lower is better.", class_="metric-tooltip"),
-                        class_="model-summary-card"
-                    ),
-                    ui.tags.div(
-                        ui.tags.div(icon_svg("circle-info"), class_="model-summary-icon qlike"),
                         ui.tags.div(
-                            ui.tags.div("QLIKE", class_="model-summary-label"),
-                            ui.tags.span("5.59%", class_="model-summary-value"),
-                            class_="model-summary-content"
+                            ui.tags.div(ui.tags.i(class_="fa fa-chart-line"), class_="model-intro-icon"),
+                            ui.tags.div("Temporal Features", class_="model-intro-label"),
+                            ui.tags.div("Incorporates historical price patterns and multiple lagged realized volatility values to capture momentum and seasonality.", class_="model-intro-text"),
+                            class_="model-intro-col"
                         ),
-                        ui.tags.div("QLIKE: A scale-sensitive error metric. Lower values indicate less scale error.", class_="metric-tooltip"),
-                        class_="model-summary-card"
-                    ),
-                    class_="model-summary-row"
+                        ui.tags.div(
+                            ui.tags.div(ui.tags.i(class_="fa fa-network-wired"), class_="model-intro-icon"),
+                            ui.tags.div("Attention Mechanism", class_="model-intro-label"),
+                            ui.tags.div("Dynamically weighs connections between stocks based on their historical correlation patterns and market conditions.", class_="model-intro-text"),
+                            class_="model-intro-col"
+                        ),
+                        class_="model-intro-row"
+                    )
                 )
             ),
-            # Model Comparison
-            panel_section(
-                "comparison",
-                "Model Comparison",
-                ui.tags.div(
-                    ui.tags.i(class_="fa fa-chart-bar"),
-                    ui.tags.div("Comparison plot coming soon...", style="margin-top:1.2rem;font-size:1.18rem;color:#bdbdbd;font-family:'Inter',sans-serif;font-weight:700;"),
-                    class_="model-comparison-placeholder"
-                )
-            ),
-            # Network View
-            panel_section(
-                "network",
-                "Network View",
-                ui.output_ui("network_graph_ui")
-            ),
+            
             class_="model-section-group",
             style="width:100vw;display:flex;flex-direction:column;align-items:center;justify-content:center;"
         )
@@ -537,6 +1063,84 @@ document.addEventListener('DOMContentLoaded', function() {
 
 # --- Server logic for network graph ---
 def server_model_details(input, output, session):
+    # --- Load real explanations data ---
+    try:
+        explain_df = pd.read_csv("data/all_explanations.csv")
+    except Exception as _:
+        explain_df = None
+
+    # Precompute choices for stock and time ids
+    if explain_df is not None:
+        STOCK_CHOICES = {str(s): f"Stock {s}" for s in sorted(explain_df["stock_idx"].unique())}
+        MAX_TIME = int(explain_df["time_idx"].max())
+    else:
+        STOCK_CHOICES = {"43": "Stock 43"}
+        MAX_TIME = 0
+
+    # Track selected stock and time_id
+    selected_stock = reactive.Value("43")
+    selected_time = reactive.Value("-1")
+    last_analyzed = reactive.Value(False)
+    
+    # React to the analyze button click
+    @reactive.Effect
+    @reactive.event(input.analyze_stock_btn)
+    def _():
+        selected_stock.set(input.interp_stock_id())
+        selected_time.set(input.interp_time_id())
+        last_analyzed.set(True)
+        # In a real application, this would trigger an API call
+        # or data loading operation to get the specific model outputs
+        print(f"Analyzing stock {selected_stock()} at time {selected_time()}")
+    
+    @reactive.Calc
+    def get_stock_interpretation_data():
+        if not last_analyzed() or explain_df is None:
+            return None
+
+        try:
+            sid = int(selected_stock())
+            # obtain subset for stock
+            sub = explain_df[explain_df["stock_idx"] == sid].sort_values("time_idx")
+            if sub.empty:
+                return None
+
+            # determine offset based on selected_time (string like "-1")
+            idx = int(selected_time())
+            if idx not in sub["time_idx"].values:
+                idx = int(sub["time_idx"].max())
+            row = sub[sub["time_idx"] == idx].iloc[0]
+
+            # extract values
+            pred = float(row["prediction"])
+            actual = float(row["actual"])
+            err_pct = float(row["error_pct"])
+
+            # feature importance columns start with 'fi_'
+            fi_cols = [c for c in explain_df.columns if c.startswith("fi_")]
+            fi_dict = {c.replace("fi_", "").strip(): float(row[c]) for c in fi_cols}
+
+            # neighbors
+            neighbors = []
+            for i in range(1,4):
+                stock_col = f"nbr{i}_stock"
+                weight_col = f"nbr{i}_weight"
+                if stock_col in row and weight_col in row:
+                    neighbors.append({"stock": str(row[stock_col]).replace("Stock ", "").strip(), "influence": float(row[weight_col])})
+
+            return {
+                "stock_id": selected_stock(),
+                "time_id": row["time_idx"],
+                "prediction": pred,
+                "actual": actual,
+                "error_pct": err_pct,
+                "feature_importance": fi_dict,
+                "influential_neighbors": neighbors,
+                "history": sub  # full df for plotting
+            }
+        except Exception as _:
+            return None
+    
     @output
     @render.ui
     def network_graph_ui():
@@ -664,3 +1268,516 @@ def server_model_details(input, output, session):
 .flow-arrow { display: inline-block; vertical-align: middle; }
 </style>
 """)
+
+    @output
+    @render.ui
+    def model_workflow_diagram():
+        return ui.HTML("""
+<div class="workflow-diagram-container">
+  <div class="workflow-diagram">
+    <!-- Top row -->
+    <div class="workflow-row">
+      <div class="workflow-box train-box">
+        Train model<br>on Training Set
+      </div>
+      <div class="workflow-arrow">→</div>
+      <div class="workflow-box validate-box">
+        Evaluate model<br>on Validation Set
+      </div>
+    </div>
+    
+    <!-- Loop arrow -->
+    <div class="workflow-loop-container">
+      <div class="workflow-loop-arrow"></div>
+    </div>
+    
+    <!-- Middle row with transparent box -->
+    <div class="workflow-row center-row">
+      <div class="workflow-transparent-box">
+        Tweak model according<br>to results on <span class="highlight-validation">Validation Set</span>
+      </div>
+    </div>
+    
+    <!-- Bottom row -->
+    <div class="workflow-row">
+      <div class="workflow-box train-box">
+        Pick model that does<br>best on <span class="highlight-validation">Validation Set</span>
+      </div>
+      <div class="workflow-arrow">→</div>
+      <div class="workflow-box test-box">
+        Confirm results<br>on <span class="highlight-test">Test Set</span>
+      </div>
+    </div>
+  </div>
+</div>
+<style>
+.workflow-diagram-container {
+  width: 100%;
+  max-width: 650px;
+  margin: 2rem auto;
+}
+
+.workflow-diagram {
+  background-color: rgba(30, 32, 42, 0.5);
+  border: 2px dashed rgba(68, 85, 137, 0.7);
+  border-radius: 16px;
+  padding: 30px 25px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.workflow-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-bottom: 10px;
+  position: relative;
+  z-index: 2;
+}
+
+.workflow-box {
+  padding: 1.1rem 1rem;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 600;
+  color: white;
+  line-height: 1.5;
+  width: 45%;
+  max-width: 240px;
+  font-size: 0.95rem;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+}
+
+.train-box {
+  background: linear-gradient(to bottom, #0c6e32, #0e5a2a);
+  border: 2px solid #1db954;
+}
+
+.validate-box {
+  background: linear-gradient(to bottom, #543ba3, #412c82);
+  border: 2px solid #7c3aed;
+}
+
+.test-box {
+  background: linear-gradient(to bottom, #9c6614, #805111);
+  border: 2px solid #fbbf24;
+}
+
+.workflow-transparent-box {
+  text-align: center;
+  font-weight: 500;
+  line-height: 1.5;
+  color: #e0e0e0;
+  font-size: 0.95rem;
+  padding: 10px;
+  margin: 5px 0 15px 0;
+}
+
+.highlight-validation {
+  color: #a78bfa;
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: #a78bfa;
+  text-underline-offset: 3px;
+}
+
+.highlight-test {
+  color: #fbbf24;
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: #fbbf24;
+  text-underline-offset: 3px;
+}
+
+.workflow-arrow {
+  margin: 0 15px;
+  color: white;
+  font-size: 1.6rem;
+  font-weight: bold;
+}
+
+.workflow-loop-container {
+  position: relative;
+  width: 60%;
+  height: 50px;
+  margin-top: 10px;
+}
+
+.workflow-loop-container::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -5px;
+  height: 5px;
+  border-left: 3px solid #7c3aed;
+  border-right: 3px solid #7c3aed;
+}
+
+.workflow-loop-container::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 30px;
+  border-left: 3px solid #7c3aed;
+  border-right: 3px solid #7c3aed;
+  border-bottom: 3px solid #7c3aed;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+
+.workflow-loop-arrow {
+  position: absolute;
+  top: -5px;
+  left: -2px;
+  width: 0;
+  height: 0;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  border-right: 15px solid #7c3aed;
+  transform: rotate(270deg);
+  z-index: 3;
+}
+
+.center-row {
+  margin-top: -20px;
+  z-index: 1;
+}
+
+@media (max-width: 768px) {
+  .workflow-box {
+    width: 42%;
+    padding: 0.8rem 0.6rem;
+    font-size: 0.85rem;
+  }
+  
+  .workflow-arrow {
+    margin: 0 10px;
+    font-size: 1.4rem;
+  }
+  
+  .workflow-transparent-box {
+    font-size: 0.85rem;
+  }
+}
+</style>
+""")
+
+    # --- Add interactive stock selection for model interpretation ---
+    @output
+    @render.ui
+    def stock_interpretation_ui():
+        return ui.tags.div(
+            ui.tags.div(
+                ui.tags.div(
+                    "Select a stock and time period to see detailed model interpretation",
+                    class_="model-interp-subtitle"
+                ),
+                ui.tags.div(
+                    ui.tags.div(
+                        ui.input_select(
+                            "interp_stock_id", 
+                            "Stock ID",
+                            STOCK_CHOICES,
+                            selected="43",
+                            width="100%"
+                        ),
+                        class_="interp-control"
+                    ),
+                    ui.tags.div(
+                        ui.input_numeric("interp_time_id", "Time Index (0-latest)", value=MAX_TIME, min=0, max=MAX_TIME, step=1, width="100%"),
+                        class_="interp-control"
+                    ),
+                    ui.tags.div(
+                        ui.input_action_button(
+                            "analyze_stock_btn",
+                            "Analyze",
+                            class_="analyze-btn"
+                        ),
+                        class_="interp-control"
+                    ),
+                    class_="interp-controls-row"
+                ),
+                class_="stock-interp-header"
+            ),
+            ui.output_ui("stock_prediction_metrics"),
+            ui.tags.div(
+                ui.tags.div(
+                    ui.tags.i(class_="fa fa-chart-bar"),
+                    ui.tags.div("Feature Importance Analysis", class_="section-title"),
+                    class_="section-header"
+                ),
+                ui.tags.div(
+                    ui.tags.div(
+                        ui.output_ui("feature_importance_plot"),
+                        class_="plot-container"
+                    ),
+                    ui.tags.div(
+                        ui.output_ui("prediction_vs_actual_plot"),
+                        class_="plot-container"
+                    ),
+                    class_="interp-plots-row"
+                ),
+                class_="plots-section"
+            ),
+            ui.tags.div(
+                ui.output_ui("influential_neighbors_ui"),
+                class_="interp-neighbors-container"
+            ),
+            id="stock_interp_content"
+        )
+    
+    @output
+    @render.ui
+    def stock_prediction_metrics():
+        data = get_stock_interpretation_data()
+        if data is None:
+            return ui.tags.div(
+                ui.tags.div("Click 'Analyze' to view model prediction details", class_="metrics-placeholder"),
+                class_="prediction-metrics-section"
+            )
+        
+        pred_val = data["prediction"]
+        actual_val = data["actual"]
+        return ui.tags.div(
+            ui.tags.div(
+                ui.tags.div(
+                    ui.tags.div(f"Stock {data['stock_id']} Prediction Analysis", class_="metric-card-title"),
+                    ui.tags.div(
+                        ui.tags.div(
+                            ui.tags.div("Predicted", class_="metric-label"),
+                            ui.tags.div(f"{pred_val:.6f}", class_="metric-value prediction"),
+                            class_="metric-value-item"
+                        ),
+                        ui.tags.div(
+                            ui.tags.div("Actual", class_="metric-label"),
+                            ui.tags.div(f"{actual_val:.6f}", class_="metric-value actual"),
+                            class_="metric-value-item"
+                        ),
+                        ui.tags.div(
+                            ui.tags.div("Error", class_="metric-label"),
+                            ui.tags.div(f"{data['error_pct']:.2f}%", class_="metric-value error"),
+                            class_="metric-value-item"
+                        ),
+                        class_="metric-values-container"
+                    ),
+                    class_="metric-card"
+                ),
+                class_="metrics-container"
+            ),
+            class_="prediction-metrics-section"
+        )
+    
+    @output
+    @render.ui
+    def feature_importance_plot():
+        data = get_stock_interpretation_data()
+        if data is None:
+            # Return an empty plot if no data
+            import plotly.graph_objects as go
+            fig = go.Figure()
+            fig.update_layout(
+                title='Click "Analyze" to see Feature Importance',
+                template='plotly_dark',
+                plot_bgcolor='rgba(36,38,44,0.8)',
+                paper_bgcolor='rgba(36,38,44,0.8)',
+                height=400,
+                width=500
+            )
+            return ui.HTML(fig.to_html(include_plotlyjs="cdn"))
+        
+        import plotly.graph_objects as go
+        import pandas as pd
+        
+        # Get feature importance data
+        feature_importance = data["feature_importance"]
+        
+        # Create a DataFrame for plotting
+        df = pd.DataFrame({
+            'Feature': list(feature_importance.keys()),
+            'Importance': list(feature_importance.values())
+        })
+        
+        # Sort by importance
+        df = df.sort_values('Importance', ascending=True)
+        
+        # Create a horizontal bar chart
+        fig = go.Figure()
+        fig.add_trace(go.Bar(
+            y=df['Feature'],
+            x=df['Importance'],
+            orientation='h',
+            marker_color=['rgba(29,185,84,0.8)' if x > 0.5 else 'rgba(167,139,250,0.8)' for x in df['Importance']],
+            text=[f"{x:.3f}" for x in df['Importance']],
+            textposition='auto'
+        ))
+        
+        fig.update_layout(
+            title=f'Feature Importance for Stock {data["stock_id"]}',
+            xaxis_title='Importance Score',
+            yaxis_title='Feature',
+            template='plotly_dark',
+            plot_bgcolor='rgba(36,38,44,0.8)',
+            paper_bgcolor='rgba(36,38,44,0.8)',
+            font=dict(
+                family="Inter, sans-serif",
+                size=12,
+                color="#ffffff"
+            ),
+            margin=dict(l=10, r=10, t=50, b=10),
+            height=400,
+            width=500,
+            xaxis=dict(
+                range=[0, max(df['Importance']) * 1.1],
+                showgrid=True,
+                gridcolor='rgba(255,255,255,0.1)'
+            )
+        )
+        
+        return ui.HTML(fig.to_html(include_plotlyjs="cdn"))
+    
+    @output
+    @render.ui
+    def prediction_vs_actual_plot():
+        data = get_stock_interpretation_data()
+        if data is None:
+            # Return an empty plot if no data
+            import plotly.graph_objects as go
+            fig = go.Figure()
+            fig.update_layout(
+                title='Click "Analyze" to see Prediction vs Actual',
+                template='plotly_dark',
+                plot_bgcolor='rgba(36,38,44,0.8)',
+                paper_bgcolor='rgba(36,38,44,0.8)',
+                height=400,
+                width=500
+            )
+            return ui.HTML(fig.to_html(include_plotlyjs="cdn"))
+            
+        # Build historical series from data['history']
+        import plotly.graph_objects as go
+        hist = data["history"].sort_values("time_idx")
+        dates = pd.to_datetime(hist["time_idx"], unit='D', origin='unix', errors='coerce') if 'time_idx' in hist else list(range(len(hist)))
+        if hasattr(dates, "tolist"):
+            dates = dates.tolist()
+        predictions = hist["prediction"].tolist()
+        actuals = hist["actual"].tolist()
+        
+        # Create a line chart
+        fig = go.Figure()
+        
+        fig.add_trace(go.Scatter(
+            x=dates,
+            y=predictions,
+            mode='lines+markers',
+            name='Predicted',
+            line=dict(color='#1db954', width=3),
+            marker=dict(size=8)
+        ))
+        
+        fig.add_trace(go.Scatter(
+            x=dates,
+            y=actuals,
+            mode='lines+markers',
+            name='Actual',
+            line=dict(color='#a78bfa', width=3),
+            marker=dict(size=8)
+        ))
+        
+        # Highlight the last point (current prediction)
+        fig.add_trace(go.Scatter(
+            x=[dates[-1]],
+            y=[predictions[-1]],
+            mode='markers',
+            name='Current Prediction',
+            marker=dict(color='#1db954', size=14, line=dict(color='white', width=2))
+        ))
+        
+        fig.add_trace(go.Scatter(
+            x=[dates[-1]],
+            y=[actuals[-1]],
+            mode='markers',
+            name='Current Actual',
+            marker=dict(color='#a78bfa', size=14, line=dict(color='white', width=2))
+        ))
+        
+        fig.update_layout(
+            title=f'Prediction vs Actual Over Time for Stock {data["stock_id"]}',
+            xaxis_title='Date',
+            yaxis_title='Realized Volatility',
+            template='plotly_dark',
+            plot_bgcolor='rgba(36,38,44,0.8)',
+            paper_bgcolor='rgba(36,38,44,0.8)',
+            font=dict(
+                family="Inter, sans-serif",
+                size=12,
+                color="#ffffff"
+            ),
+            legend=dict(
+                orientation="h",
+                yanchor="bottom",
+                y=1.02,
+                xanchor="right",
+                x=1
+            ),
+            margin=dict(l=10, r=10, t=50, b=50),
+            height=400,
+            width=500
+        )
+        
+        return ui.HTML(fig.to_html(include_plotlyjs="cdn"))
+    
+    @output
+    @render.ui
+    def influential_neighbors_ui():
+        data = get_stock_interpretation_data()
+        if data is None:
+            return ui.tags.div(
+                ui.tags.div(
+                    ui.tags.i(class_="fa fa-network-wired"),
+                    ui.tags.div("Network Influence Analysis", class_="section-title"),
+                    class_="section-header"
+                ),
+                ui.tags.div("Analyze a stock to see its influential neighbors", class_="neighbors-placeholder"),
+                class_="neighbors-container"
+            )
+            
+        # Get influential neighbors data
+        neighbors = data["influential_neighbors"]
+        
+        neighbor_elements = []
+        for neighbor in neighbors:
+            neighbor_elements.append(
+                ui.tags.div(
+                    ui.tags.div(f"Stock {neighbor['stock']}", class_="neighbor-stock"),
+                    ui.tags.div(
+                        ui.tags.div(
+                            style=f"width: {neighbor['influence']*100:.0f}%",
+                            class_="influence-bar",
+                            id=f"bar-{neighbor['stock']}",
+                            **{"data-value": f"{neighbor['influence']:.2f}"}
+                        ),
+                        class_="influence-bar-container"
+                    ),
+                    ui.tags.div(f"{neighbor['influence']:.2f}", class_="influence-value"),
+                    class_="neighbor-row"
+                )
+            )
+        
+        return ui.tags.div(
+            ui.tags.div(
+                ui.tags.i(class_="fa fa-network-wired"),
+                ui.tags.div("Network Influence Analysis", class_="section-title"),
+                class_="section-header"
+            ),
+            ui.tags.div(f"Influential Neighbors for Stock {data['stock_id']}", class_="neighbors-title"),
+            ui.tags.div(
+                *neighbor_elements,
+                class_="neighbors-list"
+            ),
+            class_="neighbors-container"
+        )
