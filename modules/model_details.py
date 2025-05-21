@@ -1065,7 +1065,7 @@ document.addEventListener('DOMContentLoaded', function() {
 def server_model_details(input, output, session):
     # --- Load real explanations data ---
     try:
-        explain_df = pd.read_csv("data/all_explanations.csv")
+        explain_df = pd.read_csv("data/mini_all_explanations.csv")
     except Exception as _:
         explain_df = None
 
