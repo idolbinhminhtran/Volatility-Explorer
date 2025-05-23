@@ -8,6 +8,9 @@ from dotenv import load_dotenv
 import openai
 from modules.common_style import get_common_css
 from modules.visual_effects import get_effects_css, get_interactive_js
+import numpy as np
+import mplcursors
+from matplotlib.patheffects import withStroke
 
 
 # Load metrics_summary.csv for metrics display
@@ -27,501 +30,219 @@ api_key = os.getenv("OPENAI_API_KEY")
 client = openai.OpenAI(api_key=api_key)
 
 
+# Load and prepare predicted volatility data
+PRED_VOL_PATH = os.path.join(_project_dir, 'data', 'predicted_realized_vol.csv')
+predicted_vol_df = None
+if os.path.exists(PRED_VOL_PATH):
+    predicted_vol_df = pd.read_csv(PRED_VOL_PATH)
+    predicted_vol_df['stock_id'] = predicted_vol_df['stock_id'].astype(str)
+
+
 # Define the UI for Individual Stock Analysis
 
 def ui_individual_stock(stock_ids):
-    # Use common CSS plus effects and specific styles for this module
+    # Use common and effects CSS for sidebar and layout consistency
     custom_css = get_common_css() + get_effects_css() + """
-    /* Enhanced Layout for Individual Stock Page */
-    .module-layout {
-        display: grid;
-        grid-template-columns: 320px 1fr;
-        gap: 0.5rem;
-        width: 100%;
-        min-height: calc(100vh - 80px);
-        background: linear-gradient(135deg, rgba(22, 24, 29, 0.9) 0%, rgba(31, 33, 40, 0.95) 100%);
-        padding: 1rem;
-        position: relative;
-    }
-    
-    /* Sidebar Card Enhancement */
-    .sidebar-card {
-        background: rgba(33, 35, 42, 0.92);
-        backdrop-filter: blur(14px) saturate(1.2);
-        border-radius: 1.5rem;
-        box-shadow: 0 8px 32px 0 rgba(29,185,84,0.18);
-        border: 2px solid #1db954;
-        padding: 1.8rem 1.5rem;
-        width: 100%;
-        min-width: 300px;
-        height: fit-content;
-        color: #fff;
-        font-family: 'Inter', 'Roboto', sans-serif;
-        position: relative;
-        overflow: visible;
-        transition: all 0.3s ease;
-        align-self: start;
-        margin: 80px 0 0 0;
-    }
-    
-    /* Module icon sizing */
-    .sidebar-card .module-icon {
-        background: #1db954;
-        border-radius: 50%;
-        margin: 0 auto 1.5rem auto;
-        width: 5rem;
-        height: 5rem;
-        font-size: 2.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        box-shadow: 0 0 20px rgba(29, 185, 84, 0.4);
-    }
-    
-    /* Title styling */
-    .sidebar-card h2 {
-        font-size: 1.8rem;
-        margin-bottom: 0.5rem;
-        color: #1db954;
-        text-align: center;
-        text-transform: uppercase;
-        font-weight: 800;
-        letter-spacing: 0.05em;
-    }
-    
-    .sidebar-card .module-subtitle {
-        text-align: center;
-        margin-bottom: 2rem;
-        opacity: 0.8;
-    }
-    
-    /* Section headers */
-    .sidebar-card h4 {
-        color: #1db954;
-        font-size: 1.2rem;
-        font-weight: 700;
-        margin-top: 1.5rem;
-        margin-bottom: 1rem;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
-    }
-    
-    /* Stock stats styling */
-    .stock-summary {
-        margin-top: 1.2rem;
-        padding: 1.2rem;
-        background: rgba(31, 33, 42, 0.92);
-        border-radius: 0.8rem;
-        border: 1px solid rgba(29, 185, 84, 0.2);
-    }
-    
-    .stats-title {
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: #1db954;
-        margin-bottom: 1rem;
-        text-align: center;
-    }
-    
-    .stat-item {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 0.7rem;
-        padding-bottom: 0.5rem;
-        border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
-    }
-    
-    .stat-item:last-child {
-        border-bottom: none;
-        margin-bottom: 0;
-    }
-    
-    .stat-label {
-        color: #e0e0e0;
-        font-size: 0.9rem;
-    }
-    
-    .stat-value {
-        color: #1db954;
-        font-weight: 700;
-        font-size: 0.9rem;
-    }
-    
-    /* ID highlight */
-    .id-highlight {
-        color: #a78bfa;
-        font-weight: 800;
-    }
-    
-    /* More compact content */
-    .main-content {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 1.2rem;
-        padding: 80px 0 0 0;
-        animation: fadeIn 0.5s forwards 0.2s;
-    }
-    
-    /* Main content header */
-    .content-header {
-        display: flex;
-        align-items: center;
-        gap: 0.8rem;
-        margin-bottom: 1rem;
-    }
-    
-    .content-header-icon {
-        font-size: 1.8rem;
-        color: #1db954;
-    }
-    
-    .content-title {
-        font-size: 1.8rem;
-        font-weight: 900;
-        color: #1db954;
-        margin: 0;
-    }
-    
-    .content-subtitle {
-        font-size: 1rem;
-        color: #a78bfa;
-        margin-bottom: 1.5rem;
-    }
-    
-    /* Chart Card Enhancement */
-    .chart-card {
-        border-radius: 1.2rem;
-        background: rgba(33, 35, 42, 0.92);
-        border: 1px solid rgba(167, 139, 250, 0.15);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        padding: 1.2rem;
-        margin-bottom: 0;
-        transition: all 0.3s ease;
-    }
-    
-    .chart-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 12px 32px rgba(29, 185, 84, 0.15);
-        border-color: rgba(29, 185, 84, 0.3);
-    }
-    
-    .chart-header {
-        display: flex;
-        align-items: center;
-        gap: 0.8rem;
-        margin-bottom: 0.8rem;
-        padding-bottom: 0.6rem;
-        border-bottom: 1px solid rgba(167, 139, 250, 0.1);
-    }
-    
-    .chart-header-icon {
-        font-size: 1.1rem;
-        color: #1db954;
-        background: rgba(29, 185, 84, 0.1);
-        border-radius: 50%;
-        width: 2.2rem;
-        height: 2.2rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.3s ease;
-    }
-    
-    .chart-card:hover .chart-header-icon {
-        background: rgba(29, 185, 84, 0.2);
-        transform: rotate(15deg);
-    }
-    
-    .chart-title {
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: #e0e0e0;
-        margin: 0;
-    }
-    
-    /* Plot sizing fix */
-    .plot-container {
-        height: 280px;
-        overflow: visible;
-    }
-    
-    /* Make sure plot container fits properly */
-    .js-plotly-plot {
-        max-height: 280px;
-    }
-    
-    /* Stats card styling */
-    .stats-card {
-        border-radius: 1.2rem;
-        background: rgba(33, 35, 42, 0.92);
-        border: 1px solid rgba(167, 139, 250, 0.15);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        padding: 1.2rem;
-        margin-bottom: 0;
-        transition: all 0.3s ease;
-    }
-    
-    .stats-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 12px 32px rgba(167, 139, 250, 0.15);
-        border-color: rgba(167, 139, 250, 0.3);
-    }
-    
-    /* Table styling */
-    .metrics-comparison-table {
-        margin-bottom: 0 !important;
-    }
-    
-    .metrics-comparison-table table {
-        border-collapse: separate;
-        border-spacing: 0;
-        width: 100%;
-        background: transparent !important;
-        overflow: hidden;
-        border-radius: 0.8rem;
-        margin-bottom: 0;
-    }
-    
-    .metrics-comparison-table th {
-        background: linear-gradient(90deg, #1db954 0%, #43e97b 100%) !important;
-        color: white !important;
-        font-weight: 700;
-        font-size: 1rem;
-        padding: 0.7rem 1rem;
-        text-align: left;
-    }
-    
-    .metrics-comparison-table td {
-        background: transparent !important;
-        color: white !important;
-        font-size: 1rem;
-        padding: 0.6rem 1rem;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        font-family: 'Inter', 'Roboto', sans-serif;
-    }
-    
-    .metrics-comparison-table tr:nth-child(even) td {
-        background: rgba(255, 255, 255, 0.02) !important;
-    }
-    
-    .metrics-comparison-table tr:hover td {
-        background: rgba(167, 139, 250, 0.08) !important;
-    }
-    
-    /* AI Analysis card */
-    .ai-analysis-card {
-        border-radius: 1.2rem;
-        background: rgba(33, 35, 42, 0.92);
-        border: 1px solid rgba(167, 139, 250, 0.15);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        padding: 1.2rem;
-        margin-bottom: 0;
-        transition: all 0.3s ease;
-    }
-    
-    .ai-analysis-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 12px 32px rgba(122, 94, 233, 0.15);
-        border-color: rgba(122, 94, 233, 0.3);
-    }
-    
-    .ai-header {
-        display: flex;
-        align-items: center;
-        gap: 0.8rem;
-        margin-bottom: 0.8rem;
-        padding-bottom: 0.6rem;
-        border-bottom: 1px solid rgba(167, 139, 250, 0.1);
-    }
-    
-    .ai-header-icon {
-        font-size: 1.1rem;
-        color: #a78bfa;
-        background: rgba(167, 139, 250, 0.1);
-        border-radius: 50%;
-        width: 2.2rem;
-        height: 2.2rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.3s ease;
-    }
-    
-    .ai-analysis-card:hover .ai-header-icon {
-        background: rgba(167, 139, 250, 0.2);
-        transform: rotate(15deg);
-    }
-    
-    .ai-title {
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: #e0e0e0;
-        margin: 0;
-    }
-    
-    .ai-suggestion-content {
-        line-height: 1.6;
-        color: #e0e0e0;
-        font-size: 1rem;
-        margin-bottom: 0;
-    }
-    
-    .glow-effect {
-        color: #a78bfa;
-        font-weight: 700;
-        position: relative;
-    }
-    
-    .glow-effect::after {
-        content: '';
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: -2px;
-        height: 1px;
-        background: #a78bfa;
-        opacity: 0.5;
-    }
+    /* Additional Individual Stock custom styles here if needed */
     """
-    
-    # Include interactive JavaScript
-    interactive_js = get_interactive_js() + """
-    // Add interactive elements specifically for the individual stock page
-    document.addEventListener('DOMContentLoaded', function() {
-        // Add hover effects to chart
-        const chartCard = document.querySelector('.chart-card');
-        if (chartCard) {
-            const plot = chartCard.querySelector('.js-plotly-plot');
-            if (plot) {
-                plot.style.transition = 'all 0.3s ease';
-                chartCard.addEventListener('mouseover', function() {
-                    plot.style.transform = 'scale(1.02)';
-                });
-                chartCard.addEventListener('mouseout', function() {
-                    plot.style.transform = 'scale(1)';
-                });
-            }
-        }
-        
-        // Add row highlight that syncs with data points
-        const tableRows = document.querySelectorAll('.metrics-comparison-table tbody tr');
-        tableRows.forEach(row => {
-            row.addEventListener('mouseenter', function() {
-                this.style.background = 'rgba(167, 139, 250, 0.08)';
-            });
-            row.addEventListener('mouseleave', function() {
-                this.style.background = '';
-            });
-        });
-    });
-    """
-    
+
     return ui.TagList(
         ui.tags.style(custom_css),
-        ui.tags.script(interactive_js),
         ui.tags.div(
-            # Layout: sidebar (left) and main content (right)
+            # Sidebar
             ui.tags.div(
-                # Sidebar (fixed width, left)
                 ui.tags.div(
-                    # Logo/Icon
-                    ui.tags.div(
-                        ui.tags.i(class_="fa fa-chart-line"),
-                        class_="module-icon"
-                    ),
-                    # Title
-                    ui.h2("Individual Stock", class_="animated-gradient-text"),
-                    ui.p("Detailed volatility analysis.", class_="module-subtitle"),
-                    
-                    # Stock Selection
-                    ui.h4("Select Stock"),
-                    ui.tags.div(
-                        ui.input_select("stock_id", "Stock ID", stock_ids, width="100%"),
-                        class_="module-input"
-                    ),
-                    
-                    # Stock Stats Summary
-                    ui.tags.div(
-                        ui.tags.div("Analysis for Stock ID", class_="stats-title"),
-                        ui.output_ui("stock_analysis_output"),
-                        class_="stock-summary"
-                    ),
-                    
-                    class_="sidebar-card"
+                    ui.tags.i(class_="fa fa-chart-line"),
+                    class_="module-icon float-effect"
                 ),
-                
-                # Main content (right)
+                ui.h2("Individual Stock Analysis", class_="animated-gradient-text"),
+                ui.p("Detailed volatility analysis and forecasting for the selected stock.", class_="module-subtitle"),
+                ui.h4("Select Stock"),
                 ui.tags.div(
-                    # Header area
-                    ui.tags.div(
-                        ui.tags.div(
-                            ui.tags.i(class_="fa fa-chart-line"),
-                            class_="content-header-icon"
-                        ),
-                        ui.tags.h2("Individual Stock Analysis", class_="content-title"),
-                        class_="content-header"
-                    ),
-                    ui.tags.div(
-                        f"Detailed volatility analysis for stocks in your portfolio.",
-                        class_="content-subtitle"
-                    ),
-                
-                    # Volatility Chart
-                    ui.tags.div(
-                        ui.tags.div(
-                            ui.tags.div(
-                                ui.tags.i(class_="fa fa-chart-line"),
-                                class_="chart-header-icon"
-                            ),
-                            ui.tags.h3("Volatility Over Time", class_="chart-title"),
-                            class_="chart-header"
-                        ),
-                        ui.tags.div(
-                            ui.output_plot("stock_volatility_plot", height="280px", width="100%"),
-                            class_="plot-container"
-                        ),
-                        class_="chart-card",
-                        style="animation-delay: 0.1s"
-                    ),
-                    
-                    # Financial Statistics
-                    ui.tags.div(
-                        ui.tags.div(
-                            ui.tags.div(
-                                ui.tags.i(class_="fa fa-table"),
-                                class_="chart-header-icon"
-                            ),
-                            ui.tags.h3("Financial Statistics Summary", class_="chart-title"),
-                            class_="chart-header"
-                        ),
-                        ui.tags.div(
-                            ui.output_data_frame("stock_metrics_table"),
-                            class_="metrics-comparison-table"
-                        ),
-                        class_="stats-card",
-                        style="animation-delay: 0.2s"
-                    ),
-                    
-                    # AI Analysis
-                    ui.tags.div(
-                        ui.tags.div(
-                            ui.tags.div(
-                                ui.tags.i(class_="fa fa-lightbulb"),
-                                class_="ai-header-icon"
-                            ),
-                            ui.tags.h3("AI Analysis", class_="ai-title"),
-                            class_="ai-header"
-                        ),
-                        ui.output_ui("stock_ai_suggestion"),
-                        class_="ai-analysis-card",
-                        style="animation-delay: 0.3s"
-                    ),
-                    
-                    class_="main-content stagger-cards"
+                    ui.input_select("stock_id", "", stock_ids, width="100%"),
+                    class_="module-input"
                 ),
-                class_="module-layout"
-            )
+                class_="sidebar-card"
+            ),
+            # Main content (vertical: Volatility Over Time on top, Financial Metrics below)
+            ui.tags.div(
+                # Volatility Over Time Card
+                ui.tags.div(
+                    ui.tags.div(
+                        ui.tags.i(class_="fa fa-chart-area"),
+                        ui.h3("Volatility Over Time", class_="card-title"),
+                        class_="metrics-header"
+                    ),
+                    ui.output_plot("stock_volatility_plot"),
+                    class_="content-card hover-card slide-in-up",
+                    style="margin-bottom:1.5rem;"
+                ),
+                # Financial Metrics Card (modern table style)
+                ui.tags.div(
+                    ui.tags.div(
+                        ui.tags.i(class_="fa fa-calculator"),
+                        ui.h3("Financial Metrics", class_="card-title"),
+                        class_="metrics-header"
+                    ),
+                    ui.tags.div(
+                        # Table container
+                        ui.tags.table(
+                            # Table header
+                            ui.tags.thead(
+                                ui.tags.tr(
+                                    ui.tags.th("Metric", class_="metric-header"),
+                                    ui.tags.th("Value", class_="value-header"),
+                                )
+                            ),
+                            # Table body
+                            ui.tags.tbody(
+                                ui.tags.tr(
+                                    ui.tags.td(
+                                        ui.tags.i(class_="fa fa-chart-bar metric-icon"),
+                                        "Average Volatility",
+                                        class_="metric-cell"
+                                    ),
+                                    ui.tags.td(
+                                        ui.output_text("avg_volatility"),
+                                        class_="value-cell highlight-green"
+                                    ),
+                                    class_="metric-row"
+                                ),
+                                ui.tags.tr(
+                                    ui.tags.td(
+                                        ui.tags.i(class_="fa fa-arrow-down metric-icon"),
+                                        "Minimum Volatility",
+                                        class_="metric-cell"
+                                    ),
+                                    ui.tags.td(
+                                        ui.output_text("min_volatility"),
+                                        class_="value-cell highlight-blue"
+                                    ),
+                                    class_="metric-row"
+                                ),
+                                ui.tags.tr(
+                                    ui.tags.td(
+                                        ui.tags.i(class_="fa fa-arrow-up metric-icon"),
+                                        "Maximum Volatility",
+                                        class_="metric-cell"
+                                    ),
+                                    ui.tags.td(
+                                        ui.output_text("max_volatility"),
+                                        class_="value-cell highlight-red"
+                                    ),
+                                    class_="metric-row"
+                                ),
+                                ui.tags.tr(
+                                    ui.tags.td(
+                                        ui.tags.i(class_="fa fa-ruler-horizontal metric-icon"),
+                                        "Volatility Range",
+                                        class_="metric-cell"
+                                    ),
+                                    ui.tags.td(
+                                        ui.output_text("range_volatility"),
+                                        class_="value-cell highlight-purple"
+                                    ),
+                                    class_="metric-row"
+                                ),
+                                ui.tags.tr(
+                                    ui.tags.td(
+                                        ui.tags.i(class_="fa fa-chart-line metric-icon"),
+                                        "Standard Deviation",
+                                        class_="metric-cell"
+                                    ),
+                                    ui.tags.td(
+                                        ui.output_text("std_volatility"),
+                                        class_="value-cell highlight-orange"
+                                    ),
+                                    class_="metric-row"
+                                ),
+                                ui.tags.tr(
+                                    ui.tags.td(
+                                        ui.tags.i(class_="fa fa-magic metric-icon"),
+                                        "Predicted Volatility",
+                                        class_="metric-cell"
+                                    ),
+                                    ui.tags.td(
+                                        ui.output_text("pred_volatility"),
+                                        class_="value-cell highlight-teal"
+                                    ),
+                                    class_="metric-row"
+                                ),
+                            ),
+                            class_="metrics-table",
+                            style="""
+                                width: 100%;
+                                border-collapse: separate;
+                                border-spacing: 0 0.5rem;
+                                margin: 1rem 0;
+                            """
+                        ),
+                        style="""
+                            background: linear-gradient(145deg, rgba(31,41,55,0.4) 0%, rgba(17,24,39,0.4) 100%);
+                            border-radius: 1rem;
+                            padding: 1.5rem;
+                            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+                        """
+                    ),
+                    ui.tags.style("""
+                        .metrics-table th {
+                            text-align: left;
+                            padding: 1rem;
+                            color: #94a3b8;
+                            font-size: 0.875rem;
+                            text-transform: uppercase;
+                            letter-spacing: 0.05em;
+                            border-bottom: 2px solid rgba(148,163,184,0.1);
+                        }
+                        .metrics-table td {
+                            padding: 1rem;
+                            transition: all 0.2s;
+                        }
+                        .metric-cell {
+                            display: flex;
+                            align-items: center;
+                            gap: 0.75rem;
+                            color: #e2e8f0;
+                            font-weight: 500;
+                        }
+                        .value-cell {
+                            font-family: monospace;
+                            font-size: 1.1rem;
+                            font-weight: 600;
+                            border-radius: 0.5rem;
+                        }
+                        .metric-row {
+                            background: rgba(30,41,59,0.5);
+                            border-radius: 0.5rem;
+                            transition: transform 0.2s;
+                        }
+                        .metric-row:hover {
+                            transform: translateX(0.25rem);
+                            background: rgba(30,41,59,0.8);
+                        }
+                        .metric-icon {
+                            width: 1.5rem;
+                            height: 1.5rem;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            border-radius: 0.375rem;
+                            background: rgba(255,255,255,0.1);
+                        }
+                        .highlight-green { color: #4ade80; }
+                        .highlight-blue { color: #60a5fa; }
+                        .highlight-red { color: #f87171; }
+                        .highlight-purple { color: #a78bfa; }
+                        .highlight-orange { color: #fb923c; }
+                        .highlight-teal { color: #2dd4bf; }
+                    """),
+                    class_="content-card hover-card slide-in-up",
+                    style="max-width:800px;"
+                ),
+                class_="main-content",
+                style="display:flex;flex-direction:column;align-items:stretch;gap:0;"
+            ),
+            class_="module-layout"
         )
     )
 
@@ -550,27 +271,43 @@ def server_individual_stock(input, output, session):
             avg_vol = data['volatility'].mean()
             min_vol = data['volatility'].min()
             max_vol = data['volatility'].max()
+            stock_id = input.stock_id()
+            
+            # Get predicted volatility if available
+            pred_vol_html = ""
+            if predicted_vol_df is not None:
+                pred_vol_row = predicted_vol_df[predicted_vol_df['stock_id'] == stock_id]
+                if not pred_vol_row.empty:
+                    pred_vol = pred_vol_row['predicted_realized_vol'].values[0]
+                    pred_vol_html = f"""
+                    <div class="stat-item">
+                        <span class="stat-label">Predicted Volatility:</span>
+                        <span class="stat-value highlight-pred">{pred_vol:.6f}</span>
+                    </div>
+                    """
+            
             return ui.HTML(
                 f"""
                 <div class="stat-item">
                     <span class="stat-label">ID:</span>
-                    <span class="stat-value id-highlight">{input.stock_id()}</span>
+                    <span class="stat-value id-highlight">{stock_id}</span>
                 </div>
                 <div class="stat-item">
                     <span class="stat-label">Average Volatility:</span>
-                    <span class="stat-value">{avg_vol:.4f}</span>
+                    <span class="stat-value">{avg_vol:.6f}</span>
                 </div>
+                {pred_vol_html}
                 <div class="stat-item">
                     <span class="stat-label">Min Volatility:</span>
-                    <span class="stat-value">{min_vol:.4f}</span>
+                    <span class="stat-value">{min_vol:.6f}</span>
                 </div>
                 <div class="stat-item">
                     <span class="stat-label">Max Volatility:</span>
-                    <span class="stat-value">{max_vol:.4f}</span>
+                    <span class="stat-value">{max_vol:.6f}</span>
                 </div>
                 <div class="stat-item">
                     <span class="stat-label">Range:</span>
-                    <span class="stat-value">{max_vol - min_vol:.4f}</span>
+                    <span class="stat-value">{max_vol - min_vol:.6f}</span>
                 </div>
                 """
             )
@@ -582,97 +319,217 @@ def server_individual_stock(input, output, session):
     def stock_volatility_plot():
         data = stock_data()
         if not data.empty:
-            fig, ax = plt.subplots(figsize=(10, 3.2))
+            # Set style for modern dark theme
+            plt.style.use('dark_background')
+            fig, ax = plt.subplots(figsize=(12, 6))
             
-            # Set dark background
-            fig.patch.set_facecolor('#23272f')
-            ax.set_facecolor('#23272f')
+            # Enhanced background with gradient
+            bg_gradient = np.linspace(0, 1, 2)
+            bg_gradient = np.vstack((bg_gradient, bg_gradient))
+            ax.imshow(bg_gradient, extent=[0, len(data), 0, max(data['volatility'])*1.1],
+                     aspect='auto', alpha=0.1, cmap='coolwarm')
             
-            # Plot data with enhanced styling
-            ax.plot(data['time_id'], data['volatility'], label=f"Volatility for Stock ID {input.stock_id()}",
-                   color='#1db954', linewidth=2.5, alpha=0.9)
+            # Set modern dark background
+            fig.patch.set_facecolor('#1a1b23')
+            ax.set_facecolor('#1f2937')
             
-            # Add area under the curve with gradient
-            ax.fill_between(data['time_id'], data['volatility'], alpha=0.2, color='#1db954')
+            # Add stylish grid
+            ax.grid(True, linestyle='--', alpha=0.1, color='#4b5563')
             
-            # Add points to highlight the data
-            ax.scatter(data['time_id'], data['volatility'], 
-                      color='#a78bfa', s=30, zorder=5, alpha=0.8)
+            # Plot main volatility line with glow effect
+            line = ax.plot(data['time_id'], data['volatility'],
+                         label=f"Volatility for Stock ID {input.stock_id()}",
+                         color='#1db954', linewidth=2, alpha=0.9, zorder=3)
             
-            # Add horizontal lines to show mean and key levels
+            # Add glow effect to the line
+            glow_line = ax.plot(data['time_id'], data['volatility'],
+                              color='#1db954', linewidth=4, alpha=0.3, zorder=2)
+            
+            # Create gradient fill under the curve
+            gradient_colors = np.zeros((2, 3, 4))
+            gradient_colors[0] = np.array([29/255, 185/255, 84/255, 0.3])  # Top color
+            gradient_colors[1] = np.array([29/255, 185/255, 84/255, 0.0])  # Bottom color
+            
+            ax.fill_between(data['time_id'], data['volatility'], 0,
+                          color='#1db954', alpha=0.1, zorder=2)
+            
+            # Add interactive scatter points
+            scatter = ax.scatter(data['time_id'], data['volatility'],
+                               color='#a78bfa', s=40, alpha=0.6, zorder=4,
+                               marker='o', edgecolor='white', linewidth=0.5)
+            
+            # Add mean line with enhanced styling
             mean_vol = data['volatility'].mean()
-            ax.axhline(y=mean_vol, color='#ff9800', linestyle='--', alpha=0.7, 
-                      linewidth=1.5, label=f"Mean: {mean_vol:.4f}")
+            mean_line = ax.axhline(y=mean_vol, color='#f59e0b', linestyle='--',
+                                 alpha=0.7, linewidth=1.5,
+                                 label=f"Mean: {mean_vol:.6f}", zorder=1)
             
-            # Highlight periods of high volatility
+            # Add predicted volatility if available
+            stock_id = input.stock_id()
+            if predicted_vol_df is not None:
+                pred_vol_row = predicted_vol_df[predicted_vol_df['stock_id'] == stock_id]
+                if not pred_vol_row.empty:
+                    pred_vol = pred_vol_row['predicted_realized_vol'].values[0]
+                    pred_line = ax.axhline(y=pred_vol, color='#43e97b',
+                                         linestyle='-', alpha=0.9, linewidth=2,
+                                         label=f"Predicted: {pred_vol:.6f}", zorder=1)
+            
+            # Add upper quartile line with pulse animation
             high_threshold = data['volatility'].quantile(0.75)
-            ax.axhline(y=high_threshold, color='#ff5252', linestyle=':', alpha=0.5,
-                      linewidth=1, label=f"Upper Quartile: {high_threshold:.4f}")
+            quartile_line = ax.axhline(y=high_threshold, color='#ef4444',
+                                     linestyle=':', alpha=0.5, linewidth=1.5,
+                                     label=f"Upper Quartile: {high_threshold:.6f}",
+                                     zorder=1)
             
-            # Styling
-            ax.set_xlabel('Time ID', color='white', fontsize=12)
-            ax.set_ylabel('Realized Volatility', color='white', fontsize=12)
-            ax.set_title(f"Volatility Over Time for Stock ID {input.stock_id()}", 
-                        fontsize=14, fontweight='bold', color='#1db954')
+            # Enhanced styling with modern fonts
+            ax.set_xlabel('Time ID', color='#e5e7eb', fontsize=12,
+                         fontweight='bold', labelpad=10)
+            ax.set_ylabel('Realized Volatility', color='#e5e7eb',
+                         fontsize=12, fontweight='bold', labelpad=10)
             
-            ax.tick_params(axis='x', colors='#a78bfa')
-            ax.tick_params(axis='y', colors='#a78bfa')
-            ax.grid(True, alpha=0.2, color='#a78bfa', linestyle='--')
+            title = ax.set_title(f"Volatility Over Time for Stock ID {input.stock_id()}",
+                               fontsize=16, fontweight='bold', color='#1db954',
+                               pad=20, path_effects=[withStroke(linewidth=3, foreground='#1f2937')])
             
-            # Style the spines
+            # Style the axis with modern look
+            ax.tick_params(axis='x', colors='#a78bfa', labelsize=10, length=6)
+            ax.tick_params(axis='y', colors='#a78bfa', labelsize=10, length=6)
+            
+            # Enhanced spines
             for spine in ax.spines.values():
-                spine.set_color('#444')
-                
-            ax.legend(facecolor='#2d3748', edgecolor='#444', 
-                    fontsize=10, loc='upper right', framealpha=0.9)
+                spine.set_color('#4b5563')
+                spine.set_linewidth(0.5)
             
+            # Create modern legend with hover effect
+            legend = ax.legend(loc='upper right', framealpha=0.95,
+                             facecolor='#1f2937', edgecolor='#4b5563',
+                             labelcolor='white', fontsize=10,
+                             title='Metrics', title_fontsize=11)
+            legend.get_frame().set_boxstyle('round,pad=0.5')
+            legend.get_frame().set_linewidth(1)
+            
+            # Add interactive tooltips
+            cursor = mplcursors.cursor(scatter, hover=True)
+            
+            @cursor.connect("add")
+            def on_add(sel):
+                point_index = sel.target.index
+                time_id = data['time_id'].iloc[point_index]
+                volatility = data['volatility'].iloc[point_index]
+                sel.annotation.set_text(f'Time ID: {time_id}\nVolatility: {volatility:.6f}')
+                sel.annotation.get_bbox_patch().set(fc='#1f2937', alpha=0.9,
+                                                  ec='#4b5563', boxstyle='round,pad=0.5')
+                sel.annotation.arrow_patch.set(arrowstyle='fancy', fc='#4b5563',
+                                            ec='#4b5563', mutation_scale=10)
+            
+            # Adjust layout
             plt.tight_layout()
+            
             return fig
         else:
-            # Return empty plot with message
-            fig, ax = plt.subplots(figsize=(10, 4))
-            fig.patch.set_facecolor('#23272f')
-            ax.set_facecolor('#23272f')
-            ax.text(0.5, 0.5, "No data available", 
-                   ha='center', va='center', color='#a78bfa', fontsize=14)
+            # Create empty plot with enhanced message
+            fig, ax = plt.subplots(figsize=(12, 6))
+            ax.text(0.5, 0.5, 'No data available for this stock',
+                   horizontalalignment='center', verticalalignment='center',
+                   transform=ax.transAxes, fontsize=14, color='#a78bfa',
+                   fontweight='bold', path_effects=[withStroke(linewidth=3,
+                                                             foreground='#1f2937')])
+            ax.set_facecolor('#1f2937')
+            fig.patch.set_facecolor('#1a1b23')
             ax.set_xticks([])
             ax.set_yticks([])
             for spine in ax.spines.values():
-                spine.set_visible(False)
+                spine.set_color('#4b5563')
+            plt.tight_layout()
             return fig
 
-    @reactive.Calc
-    def stock_metrics_df():
+    @output
+    @render.ui
+    def volatility_analysis():
+        data = stock_data()
+        if data.empty:
+            return None
+            
         stock_id = input.stock_id()
-        if not stock_id:
-            return pd.DataFrame()
-        row = metrics_df[metrics_df['stock_id'] == str(stock_id)]
-        if row.empty:
-            return pd.DataFrame()
-        df = row[metric_choices].T
-        df.index = [metric_labels.get(idx, idx) for idx in df.index]
-        df = df.reset_index().rename(columns={'index': 'Metric'})
-        # Rename the value column to 'Value' (it will be the second column)
-        if df.shape[1] > 1:
-            df.columns.values[1] = 'Value'
-            df['Value'] = df['Value'].round(6)
-        return df
+        if predicted_vol_df is None:
+            return None
+            
+        pred_vol_row = predicted_vol_df[predicted_vol_df['stock_id'] == stock_id]
+        if pred_vol_row.empty:
+            return None
+            
+        # Get the predicted and actual volatility
+        pred_vol = pred_vol_row['predicted_realized_vol'].values[0]
+        actual_vol = data['volatility'].mean()
+        
+        # Calculate the difference as a percentage
+        diff = actual_vol - pred_vol
+        diff_percent = (diff / pred_vol * 100) if pred_vol != 0 else 0
+        
+        # Create messaging based on the difference
+        if abs(diff_percent) < 10:
+            message = "The model prediction is very close to the actual observed volatility, indicating high accuracy."
+            css_class = ""
+        elif diff_percent > 0:
+            message = "Actual volatility is higher than predicted. The stock may be experiencing more market uncertainty than expected."
+            css_class = "positive"  # positive difference (actual > predicted)
+        else:
+            message = "Actual volatility is lower than predicted. The stock may be more stable than the model anticipated."
+            css_class = "negative"  # negative difference (actual < predicted)
+        
+        return ui.HTML(
+            f"""
+            <div class="volatility-analysis">
+                <div class="stats-title">Volatility Prediction Analysis</div>
+                <div class="volatility-diff {css_class}">
+                    {abs(diff_percent):.2f}% {'Above' if diff_percent > 0 else 'Below'} Prediction
+                </div>
+                <div class="volatility-message">
+                    {message}
+                </div>
+            </div>
+            """
+        )
 
     @output
-    @render.data_frame
-    def stock_metrics_table():
-        return stock_metrics_df()
+    @render.table
+    def metrics_table():
+        stock_id = input.stock_id()
+        if not stock_id or stock_id not in metrics_df['stock_id'].values:
+            return pd.DataFrame({"Metric": ["No data available"]})
+        
+        stock_metrics = metrics_df[metrics_df['stock_id'] == stock_id].iloc[0]
+        
+        # Create a DataFrame with metrics and values
+        metrics_to_show = ['avg_bid_size1', 'avg_ask_size1', 'avg_spread']
+        data = {"Metric": [], "Value": []}
+        
+        for metric in metrics_to_show:
+            if metric in stock_metrics:
+                label = metric_labels.get(metric, metric.replace('_', ' ').title())
+                data["Metric"].append(label)
+                data["Value"].append(f"{stock_metrics[metric]:.6f}")
+                
+        # Add predicted volatility if available
+        if predicted_vol_df is not None:
+            pred_vol_row = predicted_vol_df[predicted_vol_df['stock_id'] == stock_id]
+            if not pred_vol_row.empty:
+                data["Metric"].append("Predicted Volatility")
+                data["Value"].append(f"{pred_vol_row['predicted_realized_vol'].values[0]:.6f}")
+        
+        return pd.DataFrame(data)
 
     @output
     @render.ui
     def stock_ai_suggestion():
         stock_id = input.stock_id()
-        df = stock_metrics_df()
+        df = metrics_df[metrics_df['stock_id'] == stock_id].iloc[0][metric_choices]
         if not stock_id or df is None or df.empty:
             return "No financial statistics to analyze."
-        # Format the table for the prompt
+        
         prompt = f"""
 You are a financial analyst AI. Given the following financial statistics for Stock {stock_id}, provide a brief evaluation and a suggestion on whether to purchase. Be concise and use the data provided only.\n\n{df.to_string(index=False)}\n\nRespond with your evaluation and purchase suggestion.\n"""
+        
         try:
             response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
@@ -681,21 +538,152 @@ You are a financial analyst AI. Given the following financial statistics for Sto
                 temperature=0.3
             )
             suggestion = response.choices[0].message.content.strip()
-            # Split into parts for styling
-            parts = suggestion.split('. ')
-            styled_parts = []
-            for i, part in enumerate(parts):
-                if i < len(parts) - 1:  # Add period back except for last part
-                    part = part + '.'
-                # Add highlight class to important terms
-                for term in ['buy', 'sell', 'hold', 'recommend', 'purchase', 'investment']:
-                    if term in part.lower():
-                        part = part.replace(term, f'<span class="glow-effect">{term}</span>')
-                styled_parts.append(part)
             
-            styled_suggestion = ' '.join(styled_parts)
+            # Split into analysis and recommendation
+            parts = suggestion.split('. ')
+            analysis = '. '.join(parts[:-1]) + '.'
+            recommendation = parts[-1]
+            
+            # Add highlight class to important terms
+            highlight_terms = ['buy', 'sell', 'hold', 'recommend', 'purchase', 'investment',
+                             'positive', 'negative', 'upward', 'downward', 'trend']
+            
+            for term in highlight_terms:
+                if term in analysis.lower():
+                    analysis = analysis.replace(term, f'<span class="glow-effect">{term}</span>')
+                if term in recommendation.lower():
+                    recommendation = recommendation.replace(term, f'<span class="glow-effect">{term}</span>')
+            
             return ui.tags.div(
-                ui.HTML(f'<p class="ai-suggestion-content">{styled_suggestion}</p>')
+                ui.tags.div(
+                    ui.tags.i(class_="fa fa-chart-line"),
+                    ui.tags.span("Analysis", class_="insight-tag"),
+                    ui.HTML(f'<p class="ai-suggestion-content">{analysis}</p>'),
+                    class_="insight-section"
+                ),
+                ui.tags.div(
+                    ui.tags.i(class_="fa fa-lightbulb"),
+                    ui.tags.span("Recommendation", class_="insight-tag"),
+                    ui.HTML(f'<p class="ai-suggestion-content">{recommendation}</p>'),
+                    class_="insight-section"
+                )
             )
         except Exception as e:
             return f"Error getting suggestion: {e}"
+
+    # Add server-side rendering for financial metrics
+    @output
+    @render.text
+    def avg_bid_size():
+        stock_id = input.stock_id()
+        if stock_id and stock_id in metrics_df['stock_id'].values:
+            return f"{metrics_df[metrics_df['stock_id'] == stock_id]['avg_bid_size1'].values[0]:.6f}"
+        return "N/A"
+
+    @output
+    @render.text
+    def avg_ask_size():
+        stock_id = input.stock_id()
+        if stock_id and stock_id in metrics_df['stock_id'].values:
+            return f"{metrics_df[metrics_df['stock_id'] == stock_id]['avg_ask_size1'].values[0]:.6f}"
+        return "N/A"
+
+    @output
+    @render.text
+    def avg_spread():
+        stock_id = input.stock_id()
+        if stock_id and stock_id in metrics_df['stock_id'].values:
+            return f"{metrics_df[metrics_df['stock_id'] == stock_id]['avg_spread'].values[0]:.6f}"
+        return "N/A"
+
+    @output
+    @render.text
+    def pred_volatility():
+        stock_id = input.stock_id()
+        if predicted_vol_df is not None and stock_id in predicted_vol_df['stock_id'].values:
+            return f"{predicted_vol_df[predicted_vol_df['stock_id'] == stock_id]['predicted_realized_vol'].values[0]:.6f}"
+        return "N/A"
+
+    @output
+    @render.text
+    def avg_volatility():
+        stock_id = input.stock_id()
+        data = vol_df[["time_id", stock_id]].copy() if stock_id in vol_df.columns else None
+        if data is not None and not data.empty:
+            return f"{data[stock_id].mean():.6f}"
+        return "N/A"
+
+    @output
+    @render.text
+    def min_volatility():
+        stock_id = input.stock_id()
+        data = vol_df[["time_id", stock_id]].copy() if stock_id in vol_df.columns else None
+        if data is not None and not data.empty:
+            return f"{data[stock_id].min():.6f}"
+        return "N/A"
+
+    @output
+    @render.text
+    def max_volatility():
+        stock_id = input.stock_id()
+        data = vol_df[["time_id", stock_id]].copy() if stock_id in vol_df.columns else None
+        if data is not None and not data.empty:
+            return f"{data[stock_id].max():.6f}"
+        return "N/A"
+
+    @output
+    @render.text
+    def range_volatility():
+        stock_id = input.stock_id()
+        data = vol_df[["time_id", stock_id]].copy() if stock_id in vol_df.columns else None
+        if data is not None and not data.empty:
+            return f"{(data[stock_id].max() - data[stock_id].min()):.6f}"
+        return "N/A"
+
+    @output
+    @render.text
+    def std_volatility():
+        stock_id = input.stock_id()
+        data = vol_df[["time_id", stock_id]].copy() if stock_id in vol_df.columns else None
+        if data is not None and not data.empty:
+            return f"{data[stock_id].std():.6f}"
+        return "N/A"
+
+    @output
+    @render.text
+    def stock_title():
+        stock_id = input.stock_id()
+        return f"Stock {stock_id} Analysis"
+
+    @output
+    @render.text
+    def model_accuracy():
+        stock_id = input.stock_id()
+        if predicted_vol_df is not None and stock_id in predicted_vol_df['stock_id'].values:
+            pred_vol = predicted_vol_df[predicted_vol_df['stock_id'] == stock_id]['predicted_realized_vol'].values[0]
+            actual_vol = vol_df[stock_id].mean()
+            accuracy = ((pred_vol - actual_vol) / actual_vol) * 100
+            return f"{accuracy:.2f}%"
+        return "N/A"
+
+    @output
+    @render.table
+    def comparison_table():
+        stock_id = input.stock_id()
+        if not stock_id or stock_id not in metrics_df['stock_id'].values:
+            return pd.DataFrame()
+        
+        # Get comparison stocks (e.g., 3 stocks including the selected one)
+        comparison_stocks = [stock_id]
+        other_stocks = [s for s in metrics_df['stock_id'].values if s != stock_id]
+        comparison_stocks.extend(other_stocks[:2])  # Add 2 more stocks for comparison
+        
+        # Select metrics to display
+        metrics_to_show = ['avg_mid_price', 'total_return', 'avg_spread', 
+                          'avg_bid_size1', 'avg_ask_size1', 'order_imbalance', 'vwap']
+        
+        # Create comparison DataFrame
+        comparison_data = metrics_df[metrics_df['stock_id'].isin(comparison_stocks)][['stock_id'] + metrics_to_show]
+        
+        # Transpose for better display
+        comparison_data_t = comparison_data.set_index('stock_id').T

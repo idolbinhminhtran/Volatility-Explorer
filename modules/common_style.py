@@ -8,7 +8,7 @@ def get_common_css():
     .module-layout {
         display: flex;
         flex-direction: row;
-        gap: 2.5rem;
+        gap: 1rem;
         width: 100%;
         min-height: calc(100vh - 80px);
         background: linear-gradient(135deg, rgba(22, 24, 29, 0.9) 0%, rgba(31, 33, 40, 0.95) 100%);
@@ -42,7 +42,7 @@ def get_common_css():
         padding: 2.7rem 2rem 2.7rem 2rem;
         width: 350px;
         min-width: 320px;
-        margin: 2.5rem 0 2.5rem 2.5rem;
+        margin: 1.5rem 0 1.5rem 0;
         color: #fff;
         font-family: 'Inter', 'Roboto', sans-serif;
         position: relative;

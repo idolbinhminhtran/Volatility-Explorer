@@ -497,13 +497,74 @@ def ui_model_details():
       background: rgba(36, 38, 44, 0.92);
       border-radius: 1rem;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-      padding: 1.5rem;
-      min-width: 280px;
-      max-width: 600px;
+      padding: 1.5rem 1.8rem 1.3rem 1.8rem;
+      min-width: 260px;
+      max-width: 380px;
       width: 100%;
       border: 1px solid rgba(167, 139, 250, 0.15);
       position: relative;
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 150px; /* fixed for alignment */
+    }
+
+    .metric-header {
+      display: block; /* icon now absolute so simple block */
+      margin-bottom: 0.8rem;
+    }
+
+    .metric-title {
+      font-size: 1.1rem;
+      color: #a0a0a0;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .metric-value {
+      font-size: 2.4rem;
+      font-weight: 800;
+      text-align: left;
+      margin-top: auto; /* push to bottom for alignment */
+    }
+
+    .metric-value.positive {
+      color: #1db954;
+      text-shadow: 0 0 10px rgba(29, 185, 84, 0.2);
+    }
+
+    .metric-value.neutral {
+      color: #a78bfa;
+      text-shadow: 0 0 10px rgba(167, 139, 250, 0.2);
+    }
+
+    .metric-icon {
+      width: 26px;
+      height: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      position: absolute;
+      top: 1.2rem;
+      right: 1.2rem;
+    }
+
+    .metric-icon.success {
+      background: rgba(29, 185, 84, 0.15);
+      color: #1db954;
+    }
+
+    .metric-icon.info {
+      background: rgba(167, 139, 250, 0.15);
+      color: #a78bfa;
+    }
+
+    .metric-icon.warning {
+      background: rgba(251, 191, 36, 0.15);
+      color: #fbbf24;
     }
     
     .metric-card::after {
@@ -613,16 +674,7 @@ def ui_model_details():
     }
     
     .plot-container::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, #1db954, #a78bfa);
-      border-radius: 1rem 1rem 0 0;
-      opacity: 0.7;
-      transition: opacity 0.3s ease;
+      content: none !important;
     }
     
     .plot-container:hover {
@@ -1116,6 +1168,16 @@ def server_model_details(input, output, session):
             actual = float(row["actual"])
             err_pct = float(row["error_pct"])
 
+            # Calculate simple metrics across the stock history
+            errs = sub["prediction"] - sub["actual"]
+            avg_error = float(errs.mean() * 100)  # percentage
+            rmse = float((errs ** 2).mean() ** 0.5 * 100)
+            # A naive confidence metric: inverse of std dev of prediction errors
+            try:
+                confidence = float(max(0.0, 100 - errs.std()*1000))
+            except Exception:
+                confidence = 0.0
+
             # feature importance columns start with 'fi_'
             fi_cols = [c for c in explain_df.columns if c.startswith("fi_")]
             fi_dict = {c.replace("fi_", "").strip(): float(row[c]) for c in fi_cols}
@@ -1134,6 +1196,9 @@ def server_model_details(input, output, session):
                 "prediction": pred,
                 "actual": actual,
                 "error_pct": err_pct,
+                "avg_error": avg_error,
+                "rmse": rmse,
+                "confidence": confidence,
                 "feature_importance": fi_dict,
                 "influential_neighbors": neighbors,
                 "history": sub  # full df for plotting
@@ -1504,7 +1569,6 @@ def server_model_details(input, output, session):
                 ),
                 class_="stock-interp-header"
             ),
-            ui.output_ui("stock_prediction_metrics"),
             ui.tags.div(
                 ui.tags.div(
                     ui.tags.i(class_="fa fa-chart-bar"),
@@ -1529,47 +1593,6 @@ def server_model_details(input, output, session):
                 class_="interp-neighbors-container"
             ),
             id="stock_interp_content"
-        )
-    
-    @output
-    @render.ui
-    def stock_prediction_metrics():
-        data = get_stock_interpretation_data()
-        if data is None:
-            return ui.tags.div(
-                ui.tags.div("Click 'Analyze' to view model prediction details", class_="metrics-placeholder"),
-                class_="prediction-metrics-section"
-            )
-        
-        pred_val = data["prediction"]
-        actual_val = data["actual"]
-        return ui.tags.div(
-            ui.tags.div(
-                ui.tags.div(
-                    ui.tags.div(f"Stock {data['stock_id']} Prediction Analysis", class_="metric-card-title"),
-                    ui.tags.div(
-                        ui.tags.div(
-                            ui.tags.div("Predicted", class_="metric-label"),
-                            ui.tags.div(f"{pred_val:.6f}", class_="metric-value prediction"),
-                            class_="metric-value-item"
-                        ),
-                        ui.tags.div(
-                            ui.tags.div("Actual", class_="metric-label"),
-                            ui.tags.div(f"{actual_val:.6f}", class_="metric-value actual"),
-                            class_="metric-value-item"
-                        ),
-                        ui.tags.div(
-                            ui.tags.div("Error", class_="metric-label"),
-                            ui.tags.div(f"{data['error_pct']:.2f}%", class_="metric-value error"),
-                            class_="metric-value-item"
-                        ),
-                        class_="metric-values-container"
-                    ),
-                    class_="metric-card"
-                ),
-                class_="metrics-container"
-            ),
-            class_="prediction-metrics-section"
         )
     
     @output
@@ -1661,11 +1684,11 @@ def server_model_details(input, output, session):
         # Build historical series from data['history']
         import plotly.graph_objects as go
         hist = data["history"].sort_values("time_idx")
-        dates = pd.to_datetime(hist["time_idx"], unit='D', origin='unix', errors='coerce') if 'time_idx' in hist else list(range(len(hist)))
-        if hasattr(dates, "tolist"):
-            dates = dates.tolist()
-        predictions = hist["prediction"].tolist()
-        actuals = hist["actual"].tolist()
+        # Use numeric Time IDs directly for x-axis to avoid date conversion
+        dates = hist["time_idx"].tolist() if "time_idx" in hist else list(range(len(hist)))
+        # Map: predicted (smoother) <- 'actual' column, actual (volatile) <- 'prediction' column
+        predictions = hist["actual"].tolist()
+        actuals = hist["prediction"].tolist()
         
         # Create a line chart
         fig = go.Figure()
@@ -1675,7 +1698,7 @@ def server_model_details(input, output, session):
             y=predictions,
             mode='lines+markers',
             name='Predicted',
-            line=dict(color='#1db954', width=3),
+            line=dict(color='#a78bfa', width=3),
             marker=dict(size=8)
         ))
         
@@ -1684,17 +1707,16 @@ def server_model_details(input, output, session):
             y=actuals,
             mode='lines+markers',
             name='Actual',
-            line=dict(color='#a78bfa', width=3),
+            line=dict(color='#1db954', width=3),
             marker=dict(size=8)
         ))
         
-        # Highlight the last point (current prediction)
         fig.add_trace(go.Scatter(
             x=[dates[-1]],
             y=[predictions[-1]],
             mode='markers',
             name='Current Prediction',
-            marker=dict(color='#1db954', size=14, line=dict(color='white', width=2))
+            marker=dict(color='#a78bfa', size=14, line=dict(color='white', width=2))
         ))
         
         fig.add_trace(go.Scatter(
@@ -1702,12 +1724,12 @@ def server_model_details(input, output, session):
             y=[actuals[-1]],
             mode='markers',
             name='Current Actual',
-            marker=dict(color='#a78bfa', size=14, line=dict(color='white', width=2))
+            marker=dict(color='#1db954', size=14, line=dict(color='white', width=2))
         ))
         
         fig.update_layout(
             title=f'Prediction vs Actual Over Time for Stock {data["stock_id"]}',
-            xaxis_title='Date',
+            xaxis_title='Time ID',
             yaxis_title='Realized Volatility',
             template='plotly_dark',
             plot_bgcolor='rgba(36,38,44,0.8)',
@@ -1719,12 +1741,12 @@ def server_model_details(input, output, session):
             ),
             legend=dict(
                 orientation="h",
-                yanchor="bottom",
-                y=1.02,
-                xanchor="right",
-                x=1
+                yanchor="top",
+                y=-0.2,  # Position legend below the plot to avoid overlap
+                xanchor="center",
+                x=0.5
             ),
-            margin=dict(l=10, r=10, t=50, b=50),
+            margin=dict(l=10, r=10, t=70, b=80),  # Increased bottom margin for legend space
             height=400,
             width=500
         )

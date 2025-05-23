@@ -110,4 +110,7 @@ shiny.log
 **pypackages**/
 
 __pycache__/
+
 data/all_explanations.csv
+
+.git.bak

@@ -27,6 +27,25 @@ api_key = os.getenv("OPENAI_API_KEY")
 client = openai.OpenAI(api_key=api_key)
 
 
+# Load and prepare predicted volatility data
+PRED_VOL_PATH = os.path.join(_project_dir, 'data', 'predicted_realized_vol.csv')
+predicted_vol_df = None
+if os.path.exists(PRED_VOL_PATH):
+    predicted_vol_df = pd.read_csv(PRED_VOL_PATH)
+    predicted_vol_df['stock_id'] = predicted_vol_df['stock_id'].astype(str)
+
+def get_predicted_volatility(stock_id):
+    """Helper function to get predicted volatility for a stock ID"""
+    if predicted_vol_df is None or stock_id is None:
+        return None
+        
+    pred_vol_row = predicted_vol_df[predicted_vol_df['stock_id'] == stock_id]
+    if pred_vol_row.empty:
+        return None
+        
+    return pred_vol_row['predicted_realized_vol'].values[0]
+
+
 # Define the UI for Stock Comparison
 def ui_stock_comparison(stock_ids):
     # Use the common CSS and add any specific CSS for this module
@@ -417,29 +436,143 @@ def ui_stock_comparison(stock_ids):
                     class_="content-card hover-card slide-in-up",
                     style="animation-delay:0.6s;"
                 ),
-                # Financial statistics comparison
+                # Financial statistics comparison (standalone card)
                 ui.tags.div(
                     ui.tags.div(
-                        ui.tags.div(ui.tags.i(class_="fa fa-table"), class_="hover-icon"),
-                        ui.tags.h3("Financial Statistics Comparison", class_="card-title"),
-                        style="display:flex;align-items:center;gap:10px;"
+                        ui.tags.i(class_="fa fa-table header-icon"),
+                        ui.tags.h3("Financial Statistics Comparison", class_="card-title solid-header-text prominent-title"),
+                        class_="solid-header"
                     ),
                     ui.tags.div(
                         ui.output_data_frame("metrics_comparison_table"),
-                        class_="metrics-comparison-table interactive-table"
+                        class_="metrics-comparison-table interactive-table formatted-table"
                     ),
-                    # AI suggestion
+                    ui.tags.style("""
+                        .content-card.comparison-card {
+                            background: #232526;
+                            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+                            border-radius: 1.5rem;
+                            padding: 2.5rem 2rem 2rem 2rem;
+                            margin-bottom: 2.5rem;
+                            max-width: 1200px;
+                            margin-left: auto;
+                            margin-right: auto;
+                        }
+                        .solid-header {
+                            display: flex;
+                            align-items: center;
+                            gap: 1rem;
+                            padding-bottom: 1.25rem;
+                            border-bottom: 2px solid rgba(74,222,128,0.15);
+                            margin-bottom: 2rem;
+                            background: none;
+                        }
+                        .header-icon {
+                            color: #4ade80;
+                            font-size: 2rem;
+                            filter: drop-shadow(0 2px 8px #1db95488);
+                        }
+                        .solid-header-text.prominent-title {
+                            color: #fff;
+                            font-size: 2rem;
+                            font-weight: 900;
+                            letter-spacing: 0.02em;
+                            text-shadow: 0 2px 12px rgba(0,0,0,0.18);
+                        }
+                        .formatted-table th {
+                            background: linear-gradient(90deg, #1db954 0%, #a78bfa 100%);
+                            color: #fff;
+                            font-weight: 700;
+                            text-transform: uppercase;
+                            font-size: 1rem;
+                            letter-spacing: 0.07em;
+                            padding: 1rem;
+                            text-align: left;
+                            border-bottom: 2px solid rgba(74,222,128,0.2);
+                        }
+                        .formatted-table td {
+                            padding: 1rem;
+                            color: #e2e8f0;
+                            border-bottom: 1px solid rgba(148,163,184,0.08);
+                            font-family: monospace;
+                        }
+                        .formatted-table tr:nth-child(even) td {
+                            background: rgba(74,222,128,0.03);
+                        }
+                        .formatted-table tr:hover td {
+                            background: rgba(74,222,128,0.08);
+                        }
+                        .metric-name {
+                            font-weight: 700;
+                            color: #a78bfa;
+                        }
+                        .positive-value { color: #4ade80; font-weight: 600; }
+                        .negative-value { color: #f87171; font-weight: 600; }
+                        .neutral-value { color: #60a5fa; font-weight: 600; }
+                    """),
+                    class_="content-card comparison-card hover-card slide-in-up",
+                    style="animation-delay:0.8s;margin-bottom:2.5rem;"
+                ),
+                # AI Analysis (standalone card, not nested)
+                ui.tags.div(
                     ui.tags.div(
-                        ui.tags.div(
-                            ui.tags.div(ui.tags.i(class_="fa fa-lightbulb"), class_="icon"),
-                            ui.tags.span("AI Analysis"),
-                            class_="ai-suggestion-header"
-                        ),
-                        ui.output_ui("best_stock_suggestion"),
-                        class_="ai-suggestion-content"
+                        ui.tags.i(class_="fa fa-lightbulb header-icon"),
+                        ui.tags.h3("AI Analysis", class_="card-title solid-header-text prominent-title"),
+                        class_="solid-header ai-solid-header"
                     ),
-                    class_="content-card hover-card slide-in-up",
-                    style="animation-delay:0.8s;"
+                    ui.tags.div(
+                        ui.HTML('<div class="ai-section"><span class="ai-section-title"><i class="fa fa-chart-line ai-section-icon"></i> Stability Analysis</span></div>'),
+                        ui.output_ui("ai_stability_analysis"),
+                        ui.HTML('<div class="ai-section"><span class="ai-section-title"><i class="fa fa-magic ai-section-icon"></i> Volatility Prediction</span></div>'),
+                        ui.output_ui("ai_volatility_prediction"),
+                        ui.HTML('<div class="ai-section"><span class="ai-section-title"><i class="fa fa-check-circle ai-section-icon"></i> Recommendation</span></div>'),
+                        ui.output_ui("ai_recommendation"),
+                        class_="ai-analysis-content"
+                    ),
+                    ui.tags.style("""
+                        .content-card.ai-card {
+                            background: #232526;
+                            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.12);
+                            border-radius: 1.5rem;
+                            padding: 2.5rem 2rem 2rem 2rem;
+                            max-width: 1200px;
+                            margin-left: auto;
+                            margin-right: auto;
+                        }
+                        .ai-solid-header {
+                            background: none;
+                        }
+                        .ai-section {
+                            margin-top: 1.5rem;
+                            margin-bottom: 0.5rem;
+                        }
+                        .ai-section-title {
+                            font-size: 1.1rem;
+                            font-weight: 700;
+                            color: #a78bfa;
+                            display: flex;
+                            align-items: center;
+                            gap: 0.5rem;
+                        }
+                        .ai-section-icon {
+                            color: #4ade80;
+                            font-size: 1.2rem;
+                        }
+                        .ai-analysis-content {
+                            color: #e2e8f0;
+                            font-size: 1.08rem;
+                            line-height: 1.7;
+                            padding: 0.5rem 0 1.5rem 0;
+                        }
+                        .ai-analysis-content p {
+                            margin-bottom: 1.2rem;
+                        }
+                        .ai-analysis-content strong {
+                            color: #a78bfa;
+                        }
+                    """),
+                    class_="content-card ai-card hover-card slide-in-up",
+                    style="animation-delay:0.9s;"
                 ),
                 class_="main-content stagger-cards"
             ),
@@ -464,14 +597,37 @@ def server_stock_comparison(input, output, session):
     @output
     @render.ui
     def stock_1_analysis():
+        stock_id = input.stock_1()
+        if not stock_id:
+            return ui.HTML("<p>Select a stock to analyze</p>")
+        
+        # Get stock data
         data = stock_1_data()
-        if not data.empty:
-            avg_vol = data['volatility'].mean()
-            return ui.HTML(
-                f"""Analysis for <span class="hover-underline">Stock {input.stock_1()}</span>: 
-                Average Volatility = <span class="value-highlight">{avg_vol:.4f}</span>"""
-            )
-        return "No data available for the selected stock."
+        if data.empty:
+            return ui.HTML("<p>No data available for this stock</p>")
+        
+        # Calculate statistics
+        average_vol = data['volatility'].mean()
+        vol_range = data['volatility'].max() - data['volatility'].min()
+        std_dev = data['volatility'].std()
+        
+        # Get predicted volatility
+        pred_vol = get_predicted_volatility(stock_id)
+        pred_vol_html = ""
+        if pred_vol is not None:
+            pred_vol_html = f"""
+            <p><b>Predicted Volatility:</b> <span class="highlight-value prediction">{pred_vol:.6f}</span></p>
+            <p><b>Model Accuracy:</b> <span class="highlight-value">{(1 - abs(average_vol - pred_vol) / pred_vol) * 100:.2f}%</span></p>
+            """
+        
+        return ui.HTML(
+            f"""
+            <p><b>Average Volatility:</b> <span class="highlight-value">{average_vol:.6f}</span></p>
+            {pred_vol_html}
+            <p><b>Volatility Range:</b> {vol_range:.6f}</p>
+            <p><b>Standard Deviation:</b> {std_dev:.6f}</p>
+            """
+        )
 
     @output
     @render.plot
@@ -532,14 +688,82 @@ def server_stock_comparison(input, output, session):
     @output
     @render.ui
     def stock_2_analysis():
+        stock_id = input.stock_2()
+        if not stock_id:
+            return ui.HTML("<p>Select a stock to analyze</p>")
+        
+        # Get stock data
         data = stock_2_data()
-        if not data.empty:
-            avg_vol = data['volatility'].mean()
-            return ui.HTML(
-                f"""Analysis for <span class="hover-underline">Stock {input.stock_2()}</span>: 
-                Average Volatility = <span class="value-highlight">{avg_vol:.4f}</span>"""
-            )
-        return "No data available for the selected stock."
+        if data.empty:
+            return ui.HTML("<p>No data available for this stock</p>")
+        
+        # Calculate statistics
+        average_vol = data['volatility'].mean()
+        vol_range = data['volatility'].max() - data['volatility'].min()
+        std_dev = data['volatility'].std()
+        
+        # Get predicted volatility
+        pred_vol = get_predicted_volatility(stock_id)
+        pred_vol_html = ""
+        if pred_vol is not None:
+            pred_vol_html = f"""
+            <p><b>Predicted Volatility:</b> <span class="highlight-value prediction">{pred_vol:.6f}</span></p>
+            <p><b>Model Accuracy:</b> <span class="highlight-value">{(1 - abs(average_vol - pred_vol) / pred_vol) * 100:.2f}%</span></p>
+            """
+        
+        return ui.HTML(
+            f"""
+            <p><b>Average Volatility:</b> <span class="highlight-value">{average_vol:.6f}</span></p>
+            {pred_vol_html}
+            <p><b>Volatility Range:</b> {vol_range:.6f}</p>
+            <p><b>Standard Deviation:</b> {std_dev:.6f}</p>
+            """
+        )
+
+    @reactive.Calc
+    def stock_3_data():
+        stock_id = input.stock_3()
+        if stock_id:
+            stock_data = vol_df[['time_id', stock_id]].copy()
+            stock_data.columns = ['time_id', 'volatility']
+            return stock_data
+        else:
+            return pd.DataFrame(columns=['time_id', 'volatility'])
+
+    @output
+    @render.ui
+    def stock_3_analysis():
+        stock_id = input.stock_3()
+        if not stock_id:
+            return ui.HTML("<p>Select a stock to analyze</p>")
+        
+        # Get stock data
+        data = stock_3_data()
+        if data.empty:
+            return ui.HTML("<p>No data available for this stock</p>")
+        
+        # Calculate statistics
+        average_vol = data['volatility'].mean()
+        vol_range = data['volatility'].max() - data['volatility'].min()
+        std_dev = data['volatility'].std()
+        
+        # Get predicted volatility
+        pred_vol = get_predicted_volatility(stock_id)
+        pred_vol_html = ""
+        if pred_vol is not None:
+            pred_vol_html = f"""
+            <p><b>Predicted Volatility:</b> <span class="highlight-value prediction">{pred_vol:.6f}</span></p>
+            <p><b>Model Accuracy:</b> <span class="highlight-value">{(1 - abs(average_vol - pred_vol) / pred_vol) * 100:.2f}%</span></p>
+            """
+        
+        return ui.HTML(
+            f"""
+            <p><b>Average Volatility:</b> <span class="highlight-value">{average_vol:.6f}</span></p>
+            {pred_vol_html}
+            <p><b>Volatility Range:</b> {vol_range:.6f}</p>
+            <p><b>Standard Deviation:</b> {std_dev:.6f}</p>
+            """
+        )
 
     @output
     @render.plot
@@ -585,28 +809,6 @@ def server_stock_comparison(input, output, session):
             for spine in ax.spines.values():
                 spine.set_visible(False)
             return fig
-
-    @reactive.Calc
-    def stock_3_data():
-        stock_id = input.stock_3()
-        if stock_id:
-            stock_data = vol_df[['time_id', stock_id]].copy()
-            stock_data.columns = ['time_id', 'volatility']
-            return stock_data
-        else:
-            return pd.DataFrame(columns=['time_id', 'volatility'])
-
-    @output
-    @render.ui
-    def stock_3_analysis():
-        data = stock_3_data()
-        if not data.empty:
-            avg_vol = data['volatility'].mean()
-            return ui.HTML(
-                f"""Analysis for <span class="hover-underline">Stock {input.stock_3()}</span>: 
-                Average Volatility = <span class="value-highlight">{avg_vol:.4f}</span>"""
-            )
-        return "No data available for the selected stock."
 
     @output
     @render.plot
@@ -747,41 +949,75 @@ def server_stock_comparison(input, output, session):
     @output
     @render.ui
     def best_stock_suggestion():
-        # Get the current metrics table (using the reactive calc) as a string
-        df = metrics_df_for_suggestion()
-        if df is None or df.empty:
-            return "No financial statistics to analyze."
-        # Format the table for the prompt
-        prompt = f"""
-You are a financial analyst AI. Given the following stock financial statistics table, suggest which stock is the best investment and explain why in 2-3 sentences. Be concise and use the data provided only.\n\n{df.to_string(index=False)}\n\nRespond with the stock ID and your reasoning.\n"""
-        try:
-            response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[{"role": "user", "content": prompt}],
-                max_tokens=120,
-                temperature=0.3
-            )
-            suggestion = response.choices[0].message.content.strip()
-            # Format the response to highlight the recommended stock
-            stock_pattern = r'Stock (\d+)'
-            import re
-            match = re.search(stock_pattern, suggestion)
-            if match:
-                stock_id = match.group(1)
-                color = '#1db954'
-                if stock_id == input.stock_1():
-                    color = '#1db954'
-                elif stock_id == input.stock_2():
-                    color = '#a78bfa'
-                elif stock_id == input.stock_3():
-                    color = '#ff9800'
-                
-                recommendation = f'<span style="color:{color};font-weight:bold;text-decoration:underline;">Stock {stock_id}</span>'
-                suggestion = re.sub(stock_pattern, recommendation, suggestion, 1)
+        s1, s2, s3 = input.stock_1(), input.stock_2(), input.stock_3()
+        selected = [s for s in [s1, s2, s3] if s]
+        if not selected:
+            return ui.HTML("Select stocks to compare to see AI insights.")
+        
+        selected_data = []
+        for stock_id in selected:
+            # Get the correct data for each stock ID
+            if stock_id == s1:
+                data = stock_1_data()
+            elif stock_id == s2:
+                data = stock_2_data()
+            elif stock_id == s3:
+                data = stock_3_data()
+            else:
+                continue
             
-            return ui.HTML(f'<p class="typing-effect">{suggestion}</p>')
-        except Exception as e:
-            return f"Error getting suggestion: {e}"
+            if not data.empty:
+                avg_vol = data['volatility'].mean()
+                std_dev = data['volatility'].std()
+                
+                # Get predicted volatility and calculate predicted trend
+                pred_vol = get_predicted_volatility(stock_id)
+                
+                selected_data.append({
+                    'stock_id': stock_id,
+                    'avg_vol': avg_vol,
+                    'std_dev': std_dev,
+                    'volatility_ratio': std_dev / avg_vol if avg_vol > 0 else float('inf'),
+                    'pred_vol': pred_vol
+                })
+        
+        if not selected_data:
+            return ui.HTML("No data available for the selected stocks.")
+        
+        # Sort by volatility ratio (lower is more stable)
+        selected_data.sort(key=lambda x: x['volatility_ratio'])
+        most_stable = selected_data[0]['stock_id']
+        
+        # Find stock with lowest prediction error if predictions available
+        prediction_insights = ""
+        stocks_with_predictions = [s for s in selected_data if s['pred_vol'] is not None]
+        if stocks_with_predictions:
+            # Calculate prediction errors
+            for s in stocks_with_predictions:
+                s['pred_error'] = abs(s['avg_vol'] - s['pred_vol']) / s['pred_vol'] if s['pred_vol'] > 0 else float('inf')
+            
+            # Sort by prediction error (lower is better model fit)
+            stocks_with_predictions.sort(key=lambda x: x['pred_error'])
+            most_predictable = stocks_with_predictions[0]['stock_id']
+            
+            prediction_insights = f"""
+            <span class="ai-suggestion-section">Volatility Prediction</span>
+            Stock <span class="glow-effect">{most_predictable}</span> shows the closest alignment between predicted and actual volatility,
+            suggesting that our model has the best understanding of this stock's behavior. This could indicate more predictable market patterns.
+            """
+        
+        analysis = f"""
+        <span class="ai-suggestion-section">Stability Analysis</span>
+        Among the compared stocks, <span class="glow-effect">{most_stable}</span> shows the most stable volatility pattern
+        with the lowest standard deviation relative to its mean volatility.
+        {prediction_insights}
+        
+        <span class="ai-suggestion-section">Recommendation</span>
+        For a balanced approach, consider evaluating both actual volatility trends and model predictions
+        to identify stocks with consistent behavior and predictable patterns.
+        """
+        
+        return ui.HTML(analysis)
             
     # Handle reset button
     @reactive.Effect
@@ -791,3 +1027,68 @@ You are a financial analyst AI. Given the following stock financial statistics t
         ui.update_select(session, "stock_1", selected=stock_cols[0] if len(stock_cols) > 0 else None)
         ui.update_select(session, "stock_2", selected=stock_cols[1] if len(stock_cols) > 1 else None)
         ui.update_select(session, "stock_3", selected=stock_cols[2] if len(stock_cols) > 2 else None)
+
+    # --- Helper function for AI section splitting ---
+    def get_ai_analysis_sections(s1, s2, s3, stock_1_data, stock_2_data, stock_3_data):
+        # This logic is copied from best_stock_suggestion, but returns the three HTML sections separately
+        selected = [s for s in [s1, s2, s3] if s]
+        if not selected:
+            return ("Select stocks to compare to see AI insights.", "", "")
+        selected_data = []
+        for stock_id in selected:
+            # Get the correct data for each stock ID
+            if stock_id == s1:
+                data = stock_1_data()
+            elif stock_id == s2:
+                data = stock_2_data()
+            elif stock_id == s3:
+                data = stock_3_data()
+            else:
+                continue
+            if not data.empty:
+                avg_vol = data['volatility'].mean()
+                std_dev = data['volatility'].std()
+                pred_vol = get_predicted_volatility(stock_id)
+                selected_data.append({
+                    'stock_id': stock_id,
+                    'avg_vol': avg_vol,
+                    'std_dev': std_dev,
+                    'volatility_ratio': std_dev / avg_vol if avg_vol > 0 else float('inf'),
+                    'pred_vol': pred_vol
+                })
+        if not selected_data:
+            return ("No data available for the selected stocks.", "", "")
+        selected_data.sort(key=lambda x: x['volatility_ratio'])
+        most_stable = selected_data[0]['stock_id']
+        prediction_insights = ""
+        stocks_with_predictions = [s for s in selected_data if s['pred_vol'] is not None]
+        if stocks_with_predictions:
+            for s in stocks_with_predictions:
+                s['pred_error'] = abs(s['avg_vol'] - s['pred_vol']) / s['pred_vol'] if s['pred_vol'] > 0 else float('inf')
+            stocks_with_predictions.sort(key=lambda x: x['pred_error'])
+            most_predictable = stocks_with_predictions[0]['stock_id']
+            prediction_insights = f"Stock <span class=\"glow-effect\">{most_predictable}</span> shows the closest alignment between predicted and actual volatility, suggesting that our model has the best understanding of this stock's behavior. This could indicate more predictable market patterns."
+        stability_html = f"Stock <span class=\"glow-effect\">{most_stable}</span> shows the most stable volatility pattern with the lowest standard deviation relative to its mean volatility."
+        recommendation_html = "For a balanced approach, consider evaluating both actual volatility trends and model predictions to identify stocks with consistent behavior and predictable patterns."
+        return (stability_html, prediction_insights, recommendation_html)
+
+    @output
+    @render.ui
+    def ai_stability_analysis():
+        s1, s2, s3 = input.stock_1(), input.stock_2(), input.stock_3()
+        stability_html, _, _ = get_ai_analysis_sections(s1, s2, s3, stock_1_data, stock_2_data, stock_3_data)
+        return ui.HTML(stability_html)
+
+    @output
+    @render.ui
+    def ai_volatility_prediction():
+        s1, s2, s3 = input.stock_1(), input.stock_2(), input.stock_3()
+        _, prediction_html, _ = get_ai_analysis_sections(s1, s2, s3, stock_1_data, stock_2_data, stock_3_data)
+        return ui.HTML(prediction_html)
+
+    @output
+    @render.ui
+    def ai_recommendation():
+        s1, s2, s3 = input.stock_1(), input.stock_2(), input.stock_3()
+        _, _, recommendation_html = get_ai_analysis_sections(s1, s2, s3, stock_1_data, stock_2_data, stock_3_data)
+        return ui.HTML(recommendation_html)
