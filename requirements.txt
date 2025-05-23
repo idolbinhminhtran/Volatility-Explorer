@@ -9,4 +9,5 @@ faicons==0.2.2
 openai==1.78.0
 python-dotenv==1.1.0
 networkx==3.4.2
-umap==0.1.1 
+umap==0.1.1
+mplcursors==0.6 

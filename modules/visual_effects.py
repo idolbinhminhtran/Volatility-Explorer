@@ -422,6 +422,260 @@ def get_effects_css():
 
     .notif-diff.up { color: #1db954; }
     .notif-diff.down { color: #e53e3e; }
+
+    /* Advanced card effect with depth and shadows */
+    .depth-card {
+        background: rgba(36, 38, 44, 0.95);
+        border-radius: 1.5rem;
+        box-shadow: 
+            0 8px 30px rgba(0,0,0,0.2),
+            0 0 0 1px rgba(167,139,250,0.1);
+        transform-style: preserve-3d;
+        transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+                    box-shadow 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .depth-card:hover {
+        transform: translateY(-10px) scale(1.02) rotateX(5deg) rotateY(-5deg);
+        box-shadow: 
+            0 15px 35px rgba(0,0,0,0.3),
+            0 0 0 2px rgba(29,185,84,0.2);
+    }
+
+    .depth-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+            135deg,
+            rgba(255,255,255,0.1) 0%,
+            rgba(255,255,255,0) 50%,
+            rgba(255,255,255,0) 100%
+        );
+        transform: translateY(-100%);
+        transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        z-index: 1;
+    }
+
+    .depth-card:hover::before {
+        transform: translateY(0);
+    }
+
+    /* Glassmorphism effect */
+    .glass-card {
+        background: rgba(36, 38, 44, 0.85);
+        backdrop-filter: blur(15px) saturate(1.5);
+        -webkit-backdrop-filter: blur(15px) saturate(1.5);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Floating animation */
+    @keyframes floating {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-15px); }
+        100% { transform: translateY(0px); }
+    }
+
+    .floating {
+        animation: floating 5s ease-in-out infinite;
+    }
+
+    /* Glowing border effect */
+    .glow-border {
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+    }
+
+    .glow-border::after {
+        content: '';
+        position: absolute;
+        top: -2px;
+        left: -2px;
+        right: -2px;
+        bottom: -2px;
+        background: linear-gradient(
+            45deg,
+            #1db954, #a78bfa, #1db954, #a78bfa
+        );
+        background-size: 400% 400%;
+        z-index: -1;
+        animation: glowingBorder 3s ease infinite;
+        filter: blur(10px);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .glow-border:hover::after {
+        opacity: 1;
+    }
+
+    @keyframes glowingBorder {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    /* Modern table styles with hover effects */
+    .modern-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 5px;
+    }
+
+    .modern-table th {
+        background: linear-gradient(90deg, #1db954 0%, #a78bfa 100%);
+        color: white;
+        font-weight: bold;
+        padding: 15px;
+        text-align: left;
+        border-radius: 10px 10px 0 0;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .modern-table tr {
+        transition: all 0.3s ease;
+    }
+
+    .modern-table td {
+        padding: 15px;
+        background: rgba(36, 38, 44, 0.7);
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .modern-table tr:hover td {
+        background: rgba(167,139,250,0.15);
+        transform: scale(1.01);
+    }
+
+    .modern-table tr td:first-child {
+        border-top-left-radius: 10px;
+        border-bottom-left-radius: 10px;
+    }
+
+    .modern-table tr td:last-child {
+        border-top-right-radius: 10px;
+        border-bottom-right-radius: 10px;
+    }
+
+    /* Particle effect */
+    .particle-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: -1;
+    }
+
+    @keyframes animateParticles {
+        0% {
+            transform: translateY(0) rotate(0deg);
+            opacity: 1;
+            border-radius: 50%;
+        }
+        100% {
+            transform: translateY(-1000px) rotate(720deg);
+            opacity: 0;
+            border-radius: 50%;
+        }
+    }
+
+    /* Neon text effect */
+    .neon-text {
+        color: #fff;
+        text-shadow: 
+            0 0 5px #1db954,
+            0 0 10px #1db954,
+            0 0 20px #1db954,
+            0 0 40px #1db954;
+    }
+
+    .neon-purple {
+        color: #fff;
+        text-shadow: 
+            0 0 5px #a78bfa,
+            0 0 10px #a78bfa,
+            0 0 20px #a78bfa,
+            0 0 40px #a78bfa;
+    }
+
+    /* Gradient card */
+    .gradient-card {
+        background: linear-gradient(135deg, rgba(29,185,84,0.3) 0%, rgba(167,139,250,0.3) 100%);
+        position: relative;
+        z-index: 1;
+    }
+
+    .gradient-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: inherit;
+        z-index: -1;
+        filter: blur(10px);
+        opacity: 0.7;
+        transform: scale(0.95);
+        transition: all 0.3s ease;
+    }
+
+    .gradient-card:hover::before {
+        opacity: 1;
+        transform: scale(1.05);
+    }
+
+    /* Subtle background animation */
+    @keyframes gradientAnimation {
+        0% {
+            background-position: 0% 50%;
+        }
+        50% {
+            background-position: 100% 50%;
+        }
+        100% {
+            background-position: 0% 50%;
+        }
+    }
+
+    .animated-bg {
+        background: linear-gradient(-45deg, rgba(29,185,84,0.05), rgba(167,139,250,0.05));
+        background-size: 400% 400%;
+        animation: gradientAnimation 15s ease infinite;
+    }
+
+    /* Subtle grid lines for depth */
+    .grid-background {
+        position: relative;
+    }
+
+    .grid-background::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: 
+            linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+        background-size: 20px 20px;
+        z-index: -1;
+    }
     """
 
 def get_interactive_js():
@@ -563,6 +817,34 @@ def get_interactive_js():
                 el.style.transform = `translateY(${scrollY * speed}px)`;
             });
         });
+
+        // Add particles effect
+        addParticleEffect();
+        
+        // Apply glass card effect
+        document.querySelectorAll('.content-card').forEach(card => {
+            card.classList.add('glass-card');
+        });
+        
+        // Add modern table styling
+        document.querySelectorAll('.screener-table-container table').forEach(table => {
+            table.classList.add('modern-table');
+        });
+        
+        // Add grid background to main content
+        document.querySelectorAll('.main-content').forEach(content => {
+            content.classList.add('grid-background', 'animated-bg');
+        });
+        
+        // Add floating animation to AI card
+        document.querySelectorAll('.ai-suggestion').forEach(card => {
+            card.classList.add('floating');
+        });
+        
+        // Add glow border effect to buttons
+        document.querySelectorAll('.module-btn').forEach(btn => {
+            btn.classList.add('glow-border');
+        });
     });
     
     // Function to create ripple effect for buttons
@@ -585,5 +867,32 @@ def get_interactive_js():
         }
         
         button.appendChild(circle);
+    }
+
+    // Initialize particle effect
+    function addParticleEffect() {
+        const particleContainer = document.createElement('div');
+        particleContainer.className = 'particle-container';
+        document.body.appendChild(particleContainer);
+        
+        const particleCount = 20;
+        
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.style.cssText = `
+                position: absolute;
+                background: ${Math.random() > 0.5 ? 'rgba(29,185,84,0.5)' : 'rgba(167,139,250,0.5)'};
+                width: ${Math.random() * 10 + 5}px;
+                height: ${Math.random() * 10 + 5}px;
+                left: ${Math.random() * 100}vw;
+                top: ${Math.random() * 100}vh;
+                border-radius: 50%;
+                pointer-events: none;
+                opacity: ${Math.random() * 0.5 + 0.3};
+                animation: animateParticles ${Math.random() * 15 + 10}s linear infinite;
+                animation-delay: ${Math.random() * 5}s;
+            `;
+            particleContainer.appendChild(particle);
+        }
     }
     """ 

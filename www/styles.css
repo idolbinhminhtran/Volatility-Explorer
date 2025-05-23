@@ -108,7 +108,7 @@ body, .dashboard-layout {
   margin-left: 280px; /* Match sidebar width */
   transition: margin-left 0.3s ease;
   width: calc(100% - 280px);
-  padding-top: 80px; /* Space for topbar */
+  padding-top: 100px; /* Increased space for topbar */
   background: var(--background);
   min-height: 100vh;
   display: flex;
@@ -140,6 +140,7 @@ body, .dashboard-layout {
 .dashboard-header {
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
+  padding-top: 0.5rem; /* Added padding top */
   border-bottom: 1px solid rgba(167, 139, 250, 0.15);
   animation: slide-in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
@@ -172,12 +173,13 @@ body, .dashboard-layout {
   font-weight: 800;
   text-align: center;
   margin-bottom: 1.5rem;
+  margin-top: 0.5rem; /* Added margin top */
   background: linear-gradient(90deg, var(--primary) 40%, var(--accent) 100%);
   background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: gradient-shift 4s ease infinite;
-  padding-top: 1rem;
+  padding-top: 0.5rem; /* Reduced padding top */
 }
 
 /* Fix for model-insights-container */
@@ -829,19 +831,21 @@ body {
 /* Sidebar styles */
 .sidebar {
   width: 280px;
+  min-width: 280px;
+  max-width: 320px;
   background: #1e2027;
   height: 100vh;
   position: fixed;
   top: 0;
   left: 0;
-  padding: 1rem;
+  padding: 1.5rem;
   display: flex;
   flex-direction: column;
   z-index: 1000;
   box-shadow: 4px 0 24px rgba(0,0,0,0.15);
   transition: transform 0.3s ease, width 0.3s ease;
   overflow-y: auto;
-  padding-top: 80px; /* Space for topbar */
+  padding-top: 80px;
 }
 
 .sidebar.collapsed {
@@ -899,51 +903,109 @@ body {
 .sidebar-nav-items {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.8rem;
+  padding: 0.5rem;
 }
 
 .sidebar-nav-item {
   display: flex;
   align-items: center;
-  padding: 0.8rem 1rem;
-  border-radius: 0.8rem;
+  padding: 1rem 1.2rem;
+  border-radius: 1rem;
+  background: rgba(36, 38, 44, 0.6);
+  border: 1px solid rgba(167, 139, 250, 0.1);
+  color: #e0e0e0;
+  font-size: 1.1rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
-  background: transparent;
-  border: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
   width: 100%;
   text-align: left;
-  font-size: 1.05rem;
-  color: #e0e0e0;
+  min-height: 3.5rem;
 }
 
 .sidebar-nav-item:hover {
-  background: rgba(167,139,250,0.10);
-  transform: translateX(4px);
+  background: rgba(29, 185, 84, 0.15);
+  border-color: rgba(29, 185, 84, 0.3);
+  transform: translateX(5px);
+  color: #fff;
+}
+
+.sidebar-nav-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: #1db954;
+  transform: scaleY(0);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: bottom;
+}
+
+.sidebar-nav-item:hover::before {
+  transform: scaleY(1);
 }
 
 .sidebar-nav-item.active {
-  background: linear-gradient(90deg, var(--primary) 60%, var(--accent) 100%);
-  color: #fff;
-  box-shadow: 0 4px 12px rgba(29,185,84,0.18);
+  background: rgba(29, 185, 84, 0.15);
+  border-color: rgba(29, 185, 84, 0.3);
+  color: #1db954;
+  font-weight: 700;
+}
+
+.sidebar-nav-item.active::before {
+  transform: scaleY(1);
 }
 
 .sidebar-nav-content {
   display: flex;
   align-items: center;
   gap: 1rem;
+  z-index: 1;
   width: 100%;
 }
 
-.sidebar-nav-label {
-  white-space: nowrap;
-  font-weight: 600;
+.sidebar-nav-content i {
+  font-size: 1.2rem;
+  min-width: 24px;
+  text-align: center;
+  color: inherit;
+  flex-shrink: 0;
 }
 
-.sidebar-nav-item i {
-  font-size: 1.2rem;
-  min-width: 1.5rem;
-  text-align: center;
+.sidebar-nav-label {
+  flex: 1;
+  white-space: normal;
+  line-height: 1.3;
+  font-weight: 600;
+  padding-right: 0.5rem;
+}
+
+/* Individual Stock Analysis special styling - removing the gradient background by default */
+.sidebar-nav-item[id="nav_individual"] {
+  background: rgba(36, 38, 44, 0.6);
+  border: 1px solid rgba(167, 139, 250, 0.1);
+  box-shadow: none;
+}
+
+.sidebar-nav-item[id="nav_individual"]:hover {
+  background: rgba(29, 185, 84, 0.15);
+  border-color: rgba(29, 185, 84, 0.3);
+  transform: translateX(5px);
+  box-shadow: 0 6px 20px rgba(29, 185, 84, 0.2);
+}
+
+/* Navigation section title */
+.sidebar-section-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #a0a0a0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0.5rem 1.2rem;
 }
 
 /* Footer styling */

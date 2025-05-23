@@ -2,7 +2,7 @@ import os
 from shiny import App, ui, render, reactive
 from shinyswatch import theme
 from modules.screener import ui_screener, server_screener
-from modules.portfolio_tracker import ui_portfolio_tracker, server_portfolio_tracker
+from modules.portfolio_tracker import ui_portfolio_tracker, server_portfolio_tracker, get_sparkline
 from modules.individual_stock import ui_individual_stock, server_individual_stock
 from modules.screener import stock_cols, vol_df
 from modules.stock_comparison import ui_stock_comparison, server_stock_comparison
@@ -11,6 +11,7 @@ from modules.common_style import get_common_css
 from modules.visual_effects import get_effects_css, get_interactive_js
 import pandas as pd
 import numpy as np
+from faicons import icon_svg
 
 stock_ids = [str(col) for col in vol_df.columns if col != 'time_id']
 
@@ -61,10 +62,9 @@ document.addEventListener('DOMContentLoaded', function() {
     tooltip.classList.add('show');
     // Position above the icon
     const rect = e.target.getBoundingClientRect();
-    const scrollY = window.scrollY || window.pageYOffset;
-    const scrollX = window.scrollX || window.pageXOffset;
-    tooltip.style.left = (rect.left + rect.width/2 + scrollX) + 'px';
-    tooltip.style.top = (rect.top + scrollY - tooltip.offsetHeight - 16) + 'px';
+    // Since the tooltip uses position: fixed, viewport coordinates are sufficient
+    tooltip.style.left = (rect.left + rect.width / 2) + 'px';
+    tooltip.style.top = (rect.top - tooltip.offsetHeight - 16) + 'px';
     tooltip.style.transform = 'translateX(-50%)';
     tooltip.style.visibility = 'visible';
     tooltip.style.opacity = '1';
@@ -245,7 +245,7 @@ def server(input, output, session):
                 ui.tags.span(
                     ui.tags.i(class_="fa fa-clock"),
                     "Last updated: May 12, 2025 09:30 EST",
-                    class_="topbar-updated"
+                    class_="topbar-updated" 
                 ),
                 ui.input_action_button("toggle_darkmode", ui.tags.i(class_=icon_class), class_=anim_class, aria_label="Toggle dark mode"),
                 ui.input_action_button("toggle_notifications", bell_icon, class_="topbar-icon-btn", aria_label="Notifications"),
@@ -390,7 +390,7 @@ def server(input, output, session):
             
             watchlist_items = []
             for stock in top_stocks:
-                error_display = f"{stock['error']:+.1f}%"
+                error_display = f"{stock['error']:+.2f}%"
                 pill_class = "sidebar-pill green" if stock['error'] >= 0 else "sidebar-pill red"
                 
                 watchlist_items.append(ui.tags.li(
@@ -513,7 +513,7 @@ def server(input, output, session):
         elif page == "model":
             return ui_model_details()
         else:
-            return ui.tags.div("Page not found", style="text-align: center; margin-top: 2rem;")
+            return ui_dashboard()
 
     def home_content_ui():
         try:
@@ -545,125 +545,424 @@ def server(input, output, session):
         except Exception as e:
             return ui.tags.div(f"Error: {e}", style="color:red;font-size:1.5rem;text-align:center;")
         
-        return ui.tags.div(
-            # Header with dashboard title
+        # Custom CSS for enhanced visual effects
+        enhanced_css = """
+        .hero-container {
+            position: relative;
+            overflow: hidden;
+            padding: 3rem 2rem;
+            background: linear-gradient(135deg, rgba(36, 38, 44, 0.95) 0%, rgba(17, 18, 22, 0.98) 100%);
+            border-radius: 1.2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            margin-bottom: 2.5rem;
+            border: 1px solid rgba(29, 185, 84, 0.1);
+        }
+        
+        .hero-container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(29, 185, 84, 0.05) 0%, transparent 60%);
+            animation: pulse 15s infinite ease-in-out;
+            z-index: 0;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.3; }
+            50% { transform: scale(1.05); opacity: 0.5; }
+            100% { transform: scale(1); opacity: 0.3; }
+        }
+        
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 900;
+            background: linear-gradient(90deg, #1db954 0%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            letter-spacing: 2px;
+            text-shadow: 0 0 20px rgba(29, 185, 84, 0.3);
+            animation: text-focus 1s ease-out;
+        }
+        
+        @keyframes text-focus {
+            0% { letter-spacing: 5px; opacity: 0; filter: blur(12px); }
+            100% { letter-spacing: 2px; opacity: 1; filter: blur(0); }
+        }
+        
+        .hero-subtitle {
+            font-size: 1.3rem;
+            color: #e0e0e0;
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto 1.5rem;
+            line-height: 1.6;
+            position: relative;
+            z-index: 1;
+            animation: fade-in 1.2s ease-out;
+        }
+        
+        @keyframes fade-in {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        
+        .feature-card-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+        
+        .feature-card {
+            background: rgba(36, 38, 44, 0.95);
+            border-radius: 1rem;
+            padding: 1.8rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(29, 185, 84, 0.1);
+            position: relative;
+            overflow: hidden;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            animation: card-in 0.6s ease-out;
+            animation-fill-mode: both;
+        }
+        
+        .feature-card:nth-child(1) { animation-delay: 0.1s; }
+        .feature-card:nth-child(2) { animation-delay: 0.2s; }
+        .feature-card:nth-child(3) { animation-delay: 0.3s; }
+        .feature-card:nth-child(4) { animation-delay: 0.4s; }
+        
+        @keyframes card-in {
+            0% { opacity: 0; transform: translateY(30px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 35px rgba(29, 185, 84, 0.2);
+            border-color: rgba(29, 185, 84, 0.3);
+        }
+        
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #1db954, #a78bfa);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.6s ease;
+        }
+        
+        .feature-card:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .feature-icon {
+            font-size: 2.5rem;
+            color: #1db954;
+            margin-bottom: 1.2rem;
+            background: rgba(29, 185, 84, 0.1);
+            width: 70px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover .feature-icon {
+            background: rgba(29, 185, 84, 0.2);
+            transform: scale(1.1);
+        }
+        
+        .feature-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #1db954;
+            margin-bottom: 1rem;
+        }
+        
+        .feature-description {
+            font-size: 1rem;
+            color: #bdbdbd;
+            line-height: 1.6;
+            flex-grow: 1;
+        }
+        
+        .get-started-button {
+            display: inline-block;
+            background: linear-gradient(90deg, #1db954, #a78bfa);
+            color: white;
+            padding: 1rem 2.5rem;
+            border-radius: 2rem;
+            font-weight: 700;
+            font-size: 1.1rem;
+            text-decoration: none;
+            box-shadow: 0 10px 20px rgba(29, 185, 84, 0.3);
+            transition: all 0.3s ease;
+            border: none;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        .get-started-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(29, 185, 84, 0.4);
+        }
+        
+        .get-started-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #a78bfa, #1db954);
+            opacity: 0;
+            z-index: -1;
+            transition: opacity 0.3s ease;
+        }
+        
+        .get-started-button:hover::before {
+            opacity: 1;
+        }
+        
+        .get-started-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 3rem;
+        }
+        
+        .insights-container {
+            background: rgba(36, 38, 44, 0.92);
+            border-radius: 1.2rem;
+            padding: 2rem;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(29, 185, 84, 0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .insights-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #1db954;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            position: relative;
+        }
+        
+        .insights-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 3px;
+            background: linear-gradient(90deg, #1db954, #a78bfa);
+            border-radius: 3px;
+        }
+        
+        .info-icon {
+            color: #aeb0b3;
+            margin-left: 0.4rem;
+            cursor: help;
+            font-size: 0.9rem;
+        }
+        .summary-card-title {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-weight: 600;
+            color: #d0d0d0;
+        }
+        .summary-card-overview {
+            position: relative; /* allow absolute positioning inside */
+        }
+        .summary-card-overview .info-icon {
+            position: absolute !important;
+            bottom: 1rem !important;
+            right: 1rem !important;
+            left: auto !important;
+            top: auto !important;
+            margin-left: 0 !important; /* reset previous gap */
+            font-size: 0.95rem !important;
+            color: #aeb0b3 !important;
+            opacity: 0.85;
+        }
+        /* Optional hover effect */
+        .summary-card-overview .info-icon:hover {
+            color: #ffffff;
+        }
+        """
+        
+        return ui.TagList(
+            ui.tags.style(enhanced_css),
             ui.tags.div(
-                ui.tags.h1("Dashboard Overview", class_="dashboard-title"),
-                class_="dashboard-header"
-            ),
-            
-            # --- Model Insights Panel ---
-            ui.tags.div(
-                # Title for Model Insights
-                ui.tags.div("Model Insights", class_="model-insights-title"),
-                
-                # Model Performance cards
+                # Hero section with animated effects
                 ui.tags.div(
-                    ui.tags.div("Model Performance", class_="model-section-title"),
+                    ui.tags.h1("STOCK SCREENER", class_="hero-title"),
+                    ui.tags.p("A powerful tool for analyzing stock market volatility patterns, predicting future price movements, and making smarter trading decisions.", class_="hero-subtitle"),
+                    class_="hero-container"
+                ),
+                
+                # Feature cards in a responsive grid
+                ui.tags.div(
                     ui.tags.div(
-                        *[
-                            ui.tags.div(
-                                ui.tags.div(
-                                    ui.tags.div(
-                                        [
-                                            "Average Forecast Error",
-                                            ui.tags.i(class_="fa fa-info-circle info-icon", tabindex="0", **{"data-tooltip": "How much, on average, the model's predictions differ from the actual volatility. Lower is better."})
-                                        ],
-                                        class_="summary-card-title"
-                                    ),
-                                    ui.tags.div("+9%", class_="summary-card-value"),
-                                    class_="summary-card-content"
-                                ),
-                                ui.tags.div(ui.tags.i(class_="fa fa-chart-line"), class_="summary-card-icon"),
-                                class_="summary-card-overview"
-                            ),
-                            ui.tags.div(
-                                ui.tags.div(
-                                    ui.tags.div(
-                                        ui.tags.span("Root Mean Square Percentage Error", class_="card-title-text"),
-                                        ui.tags.i(class_="fa fa-info-circle info-icon", tabindex="0", **{"data-tooltip": "Shows the average size of prediction errors as a percentage. Lower means more accurate predictions."}),
-                                        class_="summary-card-title"
-                                    ),
-                                    ui.tags.div("33%", class_="summary-card-value"),
-                                    class_="summary-card-content"
-                                ),
-                                ui.tags.div(ui.tags.i(class_="fa fa-wave-square"), class_="summary-card-icon blue"),
-                                class_="summary-card-overview rmspe-card"
-                            ),
-                            ui.tags.div(
-                                ui.tags.div(
-                                    ui.tags.div(
-                                        [
-                                            "Model Confidence",
-                                            ui.tags.i(class_="fa fa-info-circle info-icon", tabindex="0", **{"data-tooltip": "How sure the model is about its predictions. Higher confidence means the model is more certain."})
-                                        ],
-                                        class_="summary-card-title"
-                                    ),
-                                    ui.tags.div("67%", class_="summary-card-value"),
-                                    class_="summary-card-content"
-                                ),
-                                ui.tags.div(ui.tags.i(class_="fa fa-chart-line"), class_="summary-card-icon purple"),
-                                class_="summary-card-overview"
-                            ),
-                            ui.tags.div(
-                                ui.tags.div(
-                                    ui.tags.div(
-                                        [
-                                            "Last Training",
-                                            ui.tags.i(class_="fa fa-info-circle info-icon", tabindex="0", **{"data-tooltip": "How recently the model was updated with new data. More recent training means fresher insights."})
-                                        ],
-                                        class_="summary-card-title"
-                                    ),
-                                    ui.tags.div("2h ago", class_="summary-card-value"),
-                                    class_="summary-card-content"
-                                ),
-                                ui.tags.div(ui.tags.i(class_="fa fa-calendar"), class_="summary-card-icon yellow"),
-                                class_="summary-card-overview"
-                            ),
-                        ],
-                        class_="summary-cards-row-overview"
+                        ui.tags.div(ui.tags.i(class_="fa fa-search"), class_="feature-icon"),
+                        ui.tags.h3("Stock Screener", class_="feature-title"),
+                        ui.tags.p("Filter and rank stocks by financial statistics. Identify trading opportunities based on volatility patterns and other key metrics.", class_="feature-description"),
+                        class_="feature-card"
                     ),
-                    # Add "View Model Details" button
                     ui.tags.div(
-                        ui.tags.button(
-                            ui.tags.i(class_="fa fa-brain"),
-                            "View Model Details",
-                            class_="view-model-btn",
-                            onclick="Shiny.setInputValue('main_nav', 'model');"
+                        ui.tags.div(ui.tags.i(class_="fa fa-chart-line"), class_="feature-icon"),
+                        ui.tags.h3("Individual Stock Analysis", class_="feature-title"),
+                        ui.tags.p("Dive deep into a specific stock's volatility patterns. Analyze historical trends and get AI-powered predictions on future price moves.", class_="feature-description"),
+                        class_="feature-card"
+                    ),
+                    ui.tags.div(
+                        ui.tags.div(ui.tags.i(class_="fa fa-balance-scale"), class_="feature-icon"),
+                        ui.tags.h3("Stock Comparison", class_="feature-title"),
+                        ui.tags.p("Compare volatility metrics between multiple stocks. Understand relative risk profiles and identify the best opportunities for your trading strategy.", class_="feature-description"),
+                        class_="feature-card"
+                    ),
+                    ui.tags.div(
+                        ui.tags.div(ui.tags.i(class_="fa fa-wallet"), class_="feature-icon"),
+                        ui.tags.h3("Portfolio Tracker", class_="feature-title"),
+                        ui.tags.p("Monitor your portfolio's volatility metrics in real-time. Get AI-powered insights on portfolio diversification and optimization strategies.", class_="feature-description"),
+                        class_="feature-card"
+                    ),
+                    class_="feature-card-container"
+                ),
+                
+                # Get Started button with animation
+                ui.tags.div(
+                    ui.tags.a("GET STARTED", href="?tab=screener", class_="get-started-button"),
+                    class_="get-started-container"
+                ),
+                
+                # Model Insights Panel with enhanced styling
+                ui.tags.div(
+                    ui.tags.div("Model Insights", class_="insights-title"),
+                    ui.tags.div(
+                        ui.tags.div("Model Performance", class_="model-section-title"),
+                        ui.tags.div(
+                            *[
+                                ui.tags.div(
+                                    ui.tags.div(
+                                        ui.tags.div(
+                                            [
+                                                "Average Forecast Error",
+                                                ui.tags.i(class_="fa fa-info-circle info-icon", tabindex="0", **{"data-tooltip": "How much, on average, the model's predictions differ from the actual volatility. Lower is better."})
+                                            ],
+                                            class_="summary-card-title"
+                                        ),
+                                        ui.tags.div("+9%", class_="summary-card-value"),
+                                        class_="summary-card-content"
+                                    ),
+                                    ui.tags.div(ui.tags.i(class_="fa fa-chart-line"), class_="summary-card-icon"),
+                                    class_="summary-card-overview"
+                                ),
+                                ui.tags.div(
+                                    ui.tags.div(
+                                        ui.tags.div(
+                                            ui.tags.span("Root Mean Square Percentage Error", class_="card-title-text"),
+                                            ui.tags.i(class_="fa fa-info-circle info-icon", tabindex="0", **{"data-tooltip": "Shows the average size of prediction errors as a percentage. Lower means more accurate predictions."}),
+                                            class_="summary-card-title"
+                                        ),
+                                        ui.tags.div("33%", class_="summary-card-value"),
+                                        class_="summary-card-content"
+                                    ),
+                                    ui.tags.div(ui.tags.i(class_="fa fa-wave-square"), class_="summary-card-icon blue"),
+                                    class_="summary-card-overview rmspe-card"
+                                ),
+                                ui.tags.div(
+                                    ui.tags.div(
+                                        ui.tags.div(
+                                            [
+                                                "Model Confidence",
+                                                ui.tags.i(class_="fa fa-info-circle info-icon", tabindex="0", **{"data-tooltip": "How sure the model is about its predictions. Higher confidence means the model is more certain."})
+                                            ],
+                                            class_="summary-card-title"
+                                        ),
+                                        ui.tags.div("67%", class_="summary-card-value"),
+                                        class_="summary-card-content"
+                                    ),
+                                    ui.tags.div(ui.tags.i(class_="fa fa-chart-line"), class_="summary-card-icon purple"),
+                                    class_="summary-card-overview"
+                                ),
+                                ui.tags.div(
+                                    ui.tags.div(
+                                        ui.tags.div(
+                                            [
+                                                "Last Training",
+                                                ui.tags.i(class_="fa fa-info-circle info-icon", tabindex="0", **{"data-tooltip": "How recently the model was updated with new data. More recent training means fresher insights."})
+                                            ],
+                                            class_="summary-card-title"
+                                        ),
+                                        ui.tags.div("2h ago", class_="summary-card-value"),
+                                        class_="summary-card-content"
+                                    ),
+                                    ui.tags.div(ui.tags.i(class_="fa fa-calendar"), class_="summary-card-icon yellow"),
+                                    class_="summary-card-overview"
+                                ),
+                            ],
+                            class_="summary-cards-row-overview"
                         ),
-                        class_="model-btn-container"
+                        ui.tags.div(
+                            ui.tags.button(
+                                ui.tags.i(class_="fa fa-brain"),
+                                "View Model Details",
+                                class_="view-model-btn",
+                                onclick="Shiny.setInputValue('main_nav', 'model');"
+                            ),
+                            class_="model-btn-container"
+                        ),
+                        class_="model-performance-section"
                     ),
-                    class_="model-performance-section"
-                ),
-                
-                ui.tags.hr(class_="model-section-divider"),
-                
-                # Heatmap
-                ui.tags.div(
-                    ui.tags.div("Next-Day Volatility Forecast Heatmap", class_="model-section-title"),
+                    ui.tags.hr(class_="model-section-divider"),
                     ui.tags.div(
-                        *([
-                            ui.tags.div(
-                                ui.tags.div(stock["symbol"], class_="stock-symbol"),
-                                ui.tags.div(stock["name"], class_="company-name"),
-                                ui.tags.div(f"Forecasted RV: {stock['forecasted_rv']:.2f}%", class_="stat-row"),
-                                ui.tags.div(f"Current RV: {stock['current_rv']:.2f}%", class_="stat-row"),
-                                ui.tags.div("Different", class_="error-label"),
-                                ui.tags.div(f"{stock['error']:+.2f}%", class_="error-value"),
-                                class_=("overview-card positive" if stock['error'] >= 0 else "overview-card negative"),
-                                title=f"{stock['symbol']} | Different: {stock['error']:.2f}% | Forecasted: {stock['forecasted_rv']:.2f}% | Current: {stock['current_rv']:.2f}%",
-                                onclick=f"navigateToStock('{stock['symbol']}')"
-                            ) for stock in real_stocks
-                        ] if real_stocks else [
-                            ui.tags.div("No data available for heatmap cards.", style="color:red;font-size:1.5rem;text-align:center;")
-                        ]),
-                        class_="overview-card-grid"
+                        ui.tags.div("Next-Day Volatility Forecast Heatmap", class_="model-section-title"),
+                        ui.tags.div(
+                            *([
+                                ui.tags.div(
+                                    ui.tags.div(stock["symbol"], class_="stock-symbol"),
+                                    ui.tags.div(stock["name"], class_="company-name"),
+                                    ui.tags.div(f"Forecasted RV: {stock['forecasted_rv']:.2f}%", class_="stat-row"),
+                                    ui.tags.div(f"Current RV: {stock['current_rv']:.2f}%", class_="stat-row"),
+                                    ui.tags.div("Different", class_="error-label"),
+                                    ui.tags.div(f"{stock['error']:+.2f}%", class_="error-value"),
+                                    class_=("overview-card positive" if stock['error'] >= 0 else "overview-card negative"),
+                                    title=f"{stock['symbol']} | Different: {stock['error']:.2f}% | Forecasted: {stock['forecasted_rv']:.2f}% | Current: {stock['current_rv']:.2f}%",
+                                    onclick=f"navigateToStock('{stock['symbol']}')"
+                                ) for stock in real_stocks
+                            ] if real_stocks else [
+                                ui.tags.div("No data available for heatmap cards.", style="color:red;font-size:1.5rem;text-align:center;")
+                            ]),
+                            class_="overview-card-grid"
+                        ),
+                        class_="heatmap-section"
                     ),
-                    class_="heatmap-section"
+                    class_="insights-container"
                 ),
-                class_="model-insights-container"
-            ),
-            class_="main-content-inner"
+                class_="main-content-inner"
+            )
         )
 
     # Toggle the notification panel
@@ -717,6 +1016,267 @@ def server(input, output, session):
     server_stock_comparison(input, output, session)
     server_portfolio_tracker(input, output, session)
     server_model_details(input, output, session)
+
+# Add dashboard/overview UI function
+def ui_dashboard():
+    """Create a dashboard overview that integrates key information from all modules."""
+    
+    custom_css = """
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 1.5rem;
+        width: 100%;
+    }
+    
+    .dashboard-card {
+        background: rgba(36, 38, 44, 0.92);
+        border-radius: 1.2rem;
+        box-shadow: 0 8px 32px 0 rgba(0,0,0,0.15);
+        border: 1px solid rgba(29,185,84,0.15);
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        min-height: 300px;
+    }
+    
+    .dashboard-card:hover {
+        transform: translateY(-5px);
+        border-color: rgba(29,185,84,0.3);
+        box-shadow: 0 15px 40px 0 rgba(29,185,84,0.15);
+    }
+    
+    .dashboard-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.2rem;
+        padding-bottom: 0.8rem;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .dashboard-icon {
+        font-size: 1.8rem;
+        color: #1db954;
+        width: 3rem;
+        height: 3rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(29,185,84,0.1);
+        border-radius: 50%;
+    }
+    
+    .dashboard-title {
+        font-size: 1.3rem;
+        font-weight: 800;
+        color: #1db954;
+        margin: 0;
+    }
+    
+    .dashboard-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .dashboard-summary {
+        margin-bottom: 1rem;
+        color: #e0e0e0;
+        line-height: 1.5;
+    }
+    
+    .dashboard-metrics {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.8rem;
+        margin-bottom: 1rem;
+    }
+    
+    .dashboard-metric {
+        background: rgba(36, 38, 44, 0.5);
+        border-radius: 0.8rem;
+        padding: 0.8rem;
+        border: 1px solid rgba(167, 139, 250, 0.1);
+    }
+    
+    .metric-label {
+        font-size: 0.8rem;
+        color: #a78bfa;
+        margin-bottom: 0.3rem;
+    }
+    
+    .metric-value {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #fff;
+    }
+    
+    .dashboard-actions {
+        margin-top: auto;
+        display: flex;
+        justify-content: flex-end;
+    }
+    
+    .dashboard-btn {
+        background: linear-gradient(90deg, #1db954 0%, #a78bfa 100%);
+        border: none;
+        color: white;
+        padding: 0.6rem 1rem;
+        border-radius: 0.8rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+    
+    .dashboard-btn:hover {
+        opacity: 0.9;
+        transform: translateY(-2px);
+    }
+    """
+    
+    return ui.TagList(
+        ui.tags.style(custom_css),
+        ui.tags.div(
+            ui.tags.h1("Volatility Explorer Dashboard", 
+                     style="color:#1db954;font-size:2rem;margin-bottom:1.5rem;"),
+            
+            ui.tags.div(
+                # Stock Screener Card
+                ui.tags.div(
+                    ui.tags.div(
+                        ui.tags.div(icon_svg("magnifying-glass"), class_="dashboard-icon"),
+                        ui.h3("Stock Screener", class_="dashboard-title"),
+                        class_="dashboard-header"
+                    ),
+                    ui.tags.div(
+                        ui.tags.p("Find top-performing stocks based on financial metrics and volatility patterns.", 
+                                class_="dashboard-summary"),
+                        ui.tags.div(
+                            ui.tags.div(
+                                ui.tags.div("Top Stock", class_="metric-label"),
+                                ui.tags.div("70", class_="metric-value"),
+                                class_="dashboard-metric"
+                            ),
+                            ui.tags.div(
+                                ui.tags.div("Avg Mid Price", class_="metric-label"),
+                                ui.tags.div("1.000127", class_="metric-value"),
+                                class_="dashboard-metric"
+                            ),
+                            class_="dashboard-metrics"
+                        ),
+                        ui.tags.div(
+                            ui.tags.a("Go to Stock Screener", href="?tab=screener", class_="dashboard-btn"),
+                            class_="dashboard-actions"
+                        ),
+                        class_="dashboard-content"
+                    ),
+                    class_="dashboard-card"
+                ),
+                
+                # Individual Stock Analysis Card
+                ui.tags.div(
+                    ui.tags.div(
+                        ui.tags.div(icon_svg("chart-line"), class_="dashboard-icon"),
+                        ui.h3("Individual Stock Analysis", class_="dashboard-title"),
+                        class_="dashboard-header"
+                    ),
+                    ui.tags.div(
+                        ui.tags.p("Detailed volatility analysis and prediction for individual stocks.", 
+                                class_="dashboard-summary"),
+                        ui.tags.div(
+                            ui.tags.div(
+                                ui.tags.div("Featured Stock", class_="metric-label"),
+                                ui.tags.div("1", class_="metric-value"),
+                                class_="dashboard-metric"
+                            ),
+                            ui.tags.div(
+                                ui.tags.div("Predicted Volatility", class_="metric-label"),
+                                ui.tags.div("0.001950", class_="metric-value"),
+                                class_="dashboard-metric"
+                            ),
+                            class_="dashboard-metrics"
+                        ),
+                        ui.tags.div(
+                            ui.tags.a("Analyze Stock", href="?tab=individual", class_="dashboard-btn"),
+                            class_="dashboard-actions"
+                        ),
+                        class_="dashboard-content"
+                    ),
+                    class_="dashboard-card"
+                ),
+                
+                # Stock Comparison Card
+                ui.tags.div(
+                    ui.tags.div(
+                        ui.tags.div(icon_svg("scale-balanced"), class_="dashboard-icon"),
+                        ui.h3("Stock Comparison", class_="dashboard-title"),
+                        class_="dashboard-header"
+                    ),
+                    ui.tags.div(
+                        ui.tags.p("Compare volatility patterns and financial metrics across multiple stocks.", 
+                                class_="dashboard-summary"),
+                        ui.tags.div(
+                            ui.tags.div(
+                                ui.tags.div("Stable Stock", class_="metric-label"),
+                                ui.tags.div("Stock 1", class_="metric-value"),
+                                class_="dashboard-metric"
+                            ),
+                            ui.tags.div(
+                                ui.tags.div("Model Accuracy", class_="metric-label"),
+                                ui.tags.div("-42.68%", class_="metric-value"),
+                                class_="dashboard-metric"
+                            ),
+                            class_="dashboard-metrics"
+                        ),
+                        ui.tags.div(
+                            ui.tags.a("Compare Stocks", href="?tab=comparison", class_="dashboard-btn"),
+                            class_="dashboard-actions"
+                        ),
+                        class_="dashboard-content"
+                    ),
+                    class_="dashboard-card"
+                ),
+                
+                # Portfolio Tracker Card
+                ui.tags.div(
+                    ui.tags.div(
+                        ui.tags.div(icon_svg("wallet"), class_="dashboard-icon"),
+                        ui.h3("Portfolio Tracker", class_="dashboard-title"),
+                        class_="dashboard-header"
+                    ),
+                    ui.tags.div(
+                        ui.tags.p("Track your stock portfolio with volatility predictions and diversification metrics.", 
+                                class_="dashboard-summary"),
+                        ui.tags.div(
+                            ui.tags.div(
+                                ui.tags.div("Portfolio Value", class_="metric-label"),
+                                ui.tags.div("$82.00", class_="metric-value"),
+                                class_="dashboard-metric"
+                            ),
+                            ui.tags.div(
+                                ui.tags.div("Daily Swing", class_="metric-label"),
+                                ui.tags.div("±$0.10", class_="metric-value"),
+                                class_="dashboard-metric"
+                            ),
+                            class_="dashboard-metrics"
+                        ),
+                        ui.tags.div(
+                            ui.tags.a("Manage Portfolio", href="?tab=portfolio", class_="dashboard-btn"),
+                            class_="dashboard-actions"
+                        ),
+                        class_="dashboard-content"
+                    ),
+                    class_="dashboard-card"
+                ),
+                
+                class_="dashboard-grid"
+            ),
+            style="padding: 2rem; max-width: 1400px; margin: 0 auto;"
+        )
+    )
 
 here = os.path.dirname(__file__)
 www_path = os.path.join(here, "www")
