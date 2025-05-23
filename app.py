@@ -20,6 +20,10 @@ app_ui = ui.page_fluid(
     # Apply custom Bootstrap theme
     shinyswatch.theme.vapor(),
     
+    # Load external stylesheets (global app styles + Font Awesome)
+    ui.tags.link(rel="stylesheet", href="styles.css"),
+    ui.tags.link(rel="stylesheet", href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"),
+    
     # Custom CSS styles
     ui.tags.style("""
     :root {
@@ -308,10 +312,13 @@ app_ui = ui.page_fluid(
     }
     """),
     
+    # Hide legacy top-bar navigation (now replaced by sidebar)
+    ui.tags.style(".nav-links{display:none !important;}"),
+    
     # Topbar Navigation
     ui.tags.div(
         ui.tags.a(
-            ui.tags.i(class_="fa fa-chart-line", style="margin-right: 8px;", class_="logo-icon"),
+            ui.tags.i(class_="fa fa-chart-line logo-icon", style="margin-right: 8px;"),
             "Volatility Explorer",
             href="?tab=dashboard",
             class_="logo"
@@ -347,6 +354,78 @@ app_ui = ui.page_fluid(
         class_="topbar"
     ),
     
+    # ---------------- Sidebar ----------------
+    ui.tags.div(
+        # Logo / Branding
+        ui.tags.div(
+            ui.tags.i(class_="fa fa-chart-pie logo-icon"),
+            ui.tags.div("Volatility", class_="logo-text-primary"),
+            ui.tags.div("Explorer", class_="logo-text-secondary"),
+            class_="sidebar-logo"
+        ),
+        # Navigation items
+        ui.tags.div(
+            # Dashboard
+            ui.tags.a(
+                ui.tags.div(
+                    ui.tags.i(class_="fa fa-home"),
+                    ui.tags.span("Dashboard", class_="sidebar-nav-label"),
+                    class_="sidebar-nav-content"
+                ),
+                href="?tab=dashboard",
+                id="side_link_dashboard",
+                class_="sidebar-nav-item"
+            ),
+            # Stock Screener
+            ui.tags.a(
+                ui.tags.div(
+                    ui.tags.i(class_="fa fa-search"),
+                    ui.tags.span("Stock Screener", class_="sidebar-nav-label"),
+                    class_="sidebar-nav-content"
+                ),
+                href="?tab=screener",
+                id="side_link_screener",
+                class_="sidebar-nav-item"
+            ),
+            # Individual Stock Analysis
+            ui.tags.a(
+                ui.tags.div(
+                    ui.tags.i(class_="fa fa-chart-line"),
+                    ui.tags.span("Individual Stock", class_="sidebar-nav-label"),
+                    class_="sidebar-nav-content"
+                ),
+                href="?tab=individual",
+                id="side_link_individual",
+                class_="sidebar-nav-item"
+            ),
+            # Stock Comparison
+            ui.tags.a(
+                ui.tags.div(
+                    ui.tags.i(class_="fa fa-balance-scale"),
+                    ui.tags.span("Stock Comparison", class_="sidebar-nav-label"),
+                    class_="sidebar-nav-content"
+                ),
+                href="?tab=comparison",
+                id="side_link_comparison",
+                class_="sidebar-nav-item"
+            ),
+            # Portfolio Tracker
+            ui.tags.a(
+                ui.tags.div(
+                    ui.tags.i(class_="fa fa-wallet"),
+                    ui.tags.span("Portfolio Tracker", class_="sidebar-nav-label"),
+                    class_="sidebar-nav-content"
+                ),
+                href="?tab=portfolio",
+                id="side_link_portfolio",
+                class_="sidebar-nav-item"
+            ),
+            class_="sidebar-nav-items"
+        ),
+        class_="sidebar"
+    ),
+    # ------------- End Sidebar -------------
+    
     # Scroll indicator
     ui.tags.div(
         ui.tags.div(class_="scroll-progress-bar"),
@@ -356,7 +435,7 @@ app_ui = ui.page_fluid(
     # Main Container - will be updated via JavaScript based on URL
     ui.tags.div(
         home_content_ui(),
-        class_="container-fluid",
+        class_="container-fluid main-content",
         id="main-content"
     ),
     
@@ -373,9 +452,10 @@ app_ui = ui.page_fluid(
         
         // Set active nav link based on current tab
         function setActiveNavLink() {
-            $('.nav-link').removeClass('active');
+            $('.nav-link, .sidebar-nav-item').removeClass('active');
             var tab = getUrlParameter('tab') || 'dashboard';
             $('#nav_link_' + tab).addClass('active');
+            $('#side_link_' + tab).addClass('active');
         }
         
         // Update content based on URL parameter
@@ -392,7 +472,7 @@ app_ui = ui.page_fluid(
         loadContent();
         
         // Handle navigation clicks
-        $('.nav-link').on('click', function(e) {
+        $('.nav-link, .sidebar-nav-item').on('click', function(e) {
             var href = $(this).attr('href');
             var tab = getUrlParameter('tab') || 'dashboard';
             

@@ -4,6 +4,205 @@ import pandas as pd
 import networkx as nx
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
+import os
+from htmltools import css
+from shinywidgets import output_widget
+import openai
+
+# --- Data loading and setup ---
+_project_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+
+# The file containing the ground-truth realised volatility in the models folder
+# is named ``actual_rv.csv`` (confirmed via directory listing).  Load that file
+# instead of the previous, incorrectly-named ``actual.csv`` so that the
+# ``actual`` column is successfully merged into each model's DataFrame.
+ACTUAL_RV_PATH = os.path.join(_project_dir, 'models', 'actual_rv.csv')
+MODELS_DIR = os.path.join(_project_dir, 'models')
+
+# Define colors for models with descriptive names
+MODEL_NAMES = {
+    'GAT': 'GAT',
+    'PCA_Linear': 'PCA Linear',
+    'EWMA': 'EWMA',
+    'LAG1': 'LAG1',
+    'HAR_RV': 'HAR-RV',
+    'Gradient_Boosting': 'Gradient Boosting',
+    'Random_Forest': 'Random Forest',
+    'Linear': 'Linear'
+}
+
+MODEL_COLORS = {
+    'GAT': '#ff0066',           # Hot Pink (our main model)
+    'PCA_Linear': '#1db954',    # Green (underscore variant)
+    'PCA Linear': '#1db954',   # Green (display name variant)
+    'EWMA': '#a78bfa',         # Purple
+    'LAG1': '#fbbf24',         # Yellow
+    'HAR_RV': '#00bcd4',       # Blue (underscore variant)
+    'HAR-RV': '#00bcd4',      # Blue (display name variant)
+    'Gradient_Boosting': '#ff6b6b',  # Red (underscore variant)
+    'Gradient Boosting': '#ff6b6b', # Red (display name variant)
+    'Random_Forest': '#4ecdc4', # Teal (underscore variant)
+    'Random Forest': '#4ecdc4',# Teal (display name variant)
+    'Linear': '#f39c12'        # Orange
+}
+
+print(f"\nInitializing model data loading...")
+print(f"Project directory: {_project_dir}")
+print(f"Models directory: {MODELS_DIR}")
+
+# Load model prediction data with new file names
+MODEL_FILES = {
+    'GAT': 'GAT_prediction_panel.csv',
+    'PCA Linear': 'PCA_Linear_predictions.csv',
+    'EWMA': 'EWMA_predictions.csv',
+    'LAG1': 'LAG1_predictions.csv',
+    'HAR-RV': 'HAR_RV_predictions.csv',
+    'Gradient Boosting': 'Gradient_Boosting_predictions.csv',
+    'Random Forest': 'Random_Forest_predictions.csv',
+    'Linear': 'Linear_predictions.csv'
+}
+
+# Load actual values first
+try:
+    print(f"\nLoading actual values from {ACTUAL_RV_PATH}")
+    if not os.path.exists(ACTUAL_RV_PATH):
+        print(f"Warning: Actual values file not found at {ACTUAL_RV_PATH}")
+        actual_df = None
+    else:
+        actual_df = pd.read_csv(ACTUAL_RV_PATH)
+        # Melt the dataframe to convert wide format to long format
+        actual_df = pd.melt(actual_df, id_vars=['bucket_idx'], var_name='stock_id', value_name='actual')
+        actual_df['time_id'] = actual_df['bucket_idx']  # Keep original time index
+        print(f"Successfully loaded actual values with shape {actual_df.shape}")
+except Exception as e:
+    print(f"Error loading actual values: {e}")
+    actual_df = None
+
+# Load prediction data for each model
+model_data = {}
+for model_name, filename in MODEL_FILES.items():
+    try:
+        filepath = os.path.join(MODELS_DIR, filename)
+        print(f"\nLoading {model_name} data from {filepath}")
+        
+        if not os.path.exists(filepath):
+            print(f"Warning: Model file not found at {filepath}")
+            model_data[model_name] = None
+            continue
+            
+        # Read the CSV file
+        df = pd.read_csv(filepath)
+        print(f"Initial data shape: {df.shape}")
+        
+        # Reset index to get the time_id column and map it to actual_rv time range
+        df = df.reset_index()
+        # Map time_id from 0-based to actual_rv range (3446-3829)
+        df['time_id'] = df['index'] + 3446
+        
+        # Melt the dataframe to convert wide format to long format
+        # Exclude the time_id column from melting
+        id_vars = ['time_id']
+        value_vars = [col for col in df.columns if col not in id_vars + ['index']]
+        
+        df = pd.melt(df, id_vars=id_vars, value_vars=value_vars, 
+                    var_name='stock_id', value_name='predicted')
+        print(f"After melting shape: {df.shape}")
+        
+        # Merge with actual values if available
+        if actual_df is not None:
+            print("Merging with actual values...")
+            df = pd.merge(
+                df,
+                actual_df[['time_id', 'stock_id', 'actual']],
+                on=['time_id', 'stock_id'],
+                how='left'
+            )
+            print(f"After merging shape: {df.shape}")
+        
+        model_data[model_name] = df
+        print(f"Successfully loaded {model_name} data")
+    except Exception as e:
+        print(f"Error loading {model_name} data: {e}")
+        model_data[model_name] = None
+
+# Get unique stock IDs from actual values
+try:
+    if actual_df is not None:
+        stock_ids = [str(c) for c in actual_df['stock_id'].unique()]
+        print(f"\nFound {len(stock_ids)} unique stock IDs")
+    else:
+        print("\nNo actual values loaded, using default stock ID")
+        stock_ids = ["43"]  # Default fallback
+except Exception as e:
+    print(f"Error getting stock IDs: {e}")
+    stock_ids = ["43"]  # Default fallback
+
+# Load model metrics
+try:
+    metrics_df = pd.read_csv(os.path.join(MODELS_DIR, 'model_metrics_summary.csv'))
+    MODEL_METRICS = metrics_df.set_index('Model').to_dict('index')
+except Exception as e:
+    print(f"Error loading model metrics: {e}")
+    MODEL_METRICS = {}
+
+# After model_data is populated, compute overall available time range
+try:
+    _time_values = set()
+    for _df in model_data.values():
+        if _df is not None and 'time_id' in _df:
+            _time_values.update(_df['time_id'].unique())
+    TIME_MIN = int(min(_time_values)) if _time_values else 3446  # Set default minimum to 3446
+    TIME_MAX = int(max(_time_values)) if _time_values else 3829  # Set default maximum to 3829
+    print(f"\nTime range: {TIME_MIN} to {TIME_MAX}")
+except Exception as e:
+    print(f"Error computing time range: {e}")
+    TIME_MIN, TIME_MAX = 3446, 3829  # Set default range if error occurs
+
+print("\nModel data initialization complete.")
+
+# -----------------------------------------------------------------------------
+# NOTE: Global placeholder for the interpretation dataframe. If you have already
+# generated SHAP / feature-importance outputs, load them into this variable so
+# the Stock-Level Interpretation panel can show meaningful information. Keeping
+# a defined variable prevents NameError exceptions when the panel is used even
+# when the data is not yet available.
+# -----------------------------------------------------------------------------
+
+# Attempt to load feature importance explanations if available
+EXPLAIN_PATH = os.path.join(_project_dir, 'data', 'mini_all_explanations.csv')
+
+# Initialize to None; will update if file exists
+explain_df = None
+
+try:
+    if os.path.exists(EXPLAIN_PATH):
+        explain_df = pd.read_csv(EXPLAIN_PATH)
+
+        # Ensure stock identifiers are strings to match UI select input values
+        if 'stock_idx' in explain_df.columns:
+            explain_df['stock_idx'] = explain_df['stock_idx'].astype(str)
+
+        # Rename any whitespace in column headers just in case
+        explain_df.columns = [c.strip() for c in explain_df.columns]
+
+        print(f"Loaded explanation dataframe with shape {explain_df.shape} from {EXPLAIN_PATH}")
+    else:
+        print(f"Explanation file not found at {EXPLAIN_PATH}. Stock-level interpretation panel will remain disabled.")
+except Exception as _e:
+    print(f"Error loading explanation data: {_e}. Stock-level interpretation panel will remain disabled.")
+
+# Utility function to convert a human-readable model name to a valid Shiny input
+# id fragment (letters, numbers, underscore only).
+
+
+def _sanitize_model_id(name: str) -> str:
+    """Return a safe identifier derived from the display model *name*.
+
+    Shiny IDs cannot contain spaces or hyphens. We therefore replace any space
+    or hyphen with an underscore, leaving other characters untouched.
+    """
+
+    return name.replace(" ", "_").replace("-", "_")
 
 # Helper to create a consistent panel
 def panel_section(panel_id, title, content, open_by_default=False):
@@ -904,6 +1103,244 @@ def ui_model_details():
       font-weight: 500;
       letter-spacing: 0.01em;
     }
+    /* Model Comparison Panel */
+    .model-comparison-panel {
+        background: rgba(36, 38, 44, 0.95);
+        border-radius: 1.2rem;
+        padding: 2rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid rgba(29, 185, 84, 0.15);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        width: 100%;
+    }
+
+    .model-comparison-title {
+        color: #1db954;
+        font-size: 1.8rem;
+        font-weight: 800;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+    }
+
+    .model-comparison-subtitle {
+        color: #e0e0e0;
+        font-size: 1.1rem;
+        margin-bottom: 2rem;
+        opacity: 0.9;
+    }
+
+    .comparison-controls {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .control-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .control-label {
+        color: #a78bfa;
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+
+    .comparison-input {
+        background: rgba(36, 38, 44, 0.8);
+        border: 1px solid rgba(167, 139, 250, 0.3);
+        border-radius: 0.5rem;
+        color: white;
+        padding: 0.5rem 1rem;
+        width: 100%;
+    }
+
+    .analyze-btn {
+        background: linear-gradient(135deg, #1db954 0%, #a78bfa 100%);
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        padding: 0.8rem 2rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .analyze-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(29, 185, 84, 0.2);
+    }
+
+    .comparison-charts {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        margin-top: 2rem;
+        width: 100%;
+    }
+
+    .chart-container {
+        background: rgba(36, 38, 44, 0.8);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        width: 100%;
+        border: 1px solid rgba(167, 139, 250, 0.15);
+        position: relative;
+    }
+
+    .chart-container.prediction-chart {
+        min-height: 500px;  /* Increased height */
+    }
+
+    .chart-container.error-chart {
+        min-height: 300px;
+    }
+
+    .chart-title {
+        color: #1db954;
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+
+    #plotly_prediction, #plotly_error {
+        width: 100% !important;
+    }
+
+    .js-plotly-plot {
+        width: 100% !important;
+    }
+
+    /* Training Approach Visualization */
+    .training-approach-section {
+        width: 100%;
+        max-width: 900px;
+        margin: 2rem auto;
+        padding: 2rem;
+    }
+
+    .split-visualization {
+        background: rgba(36, 38, 44, 0.92);
+        border-radius: 1.2rem;
+        padding: 2rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(167, 139, 250, 0.15);
+    }
+
+    .split-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #1db954;
+        text-align: center;
+        margin-bottom: 2rem;
+        text-shadow: 0 0 10px rgba(29, 185, 84, 0.3);
+    }
+
+    .split-bar {
+        height: 60px;
+        background: rgba(30, 32, 39, 0.7);
+        border-radius: 30px;
+        display: flex;
+        overflow: hidden;
+        margin-bottom: 1rem;
+        position: relative;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .split-train {
+        width: 80%;
+        background: linear-gradient(90deg, #1db954 60%, #43e97b 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 1.1rem;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .split-val {
+        width: 10%;
+        background: linear-gradient(90deg, #a78bfa 60%, #7c3aed 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 1.1rem;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    .split-test {
+        width: 10%;
+        background: linear-gradient(90deg, #fbbf24 60%, #f59e42 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 1.1rem;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    .timeline-wrapper {
+        margin-top: 1.5rem;
+        padding: 0 1rem;
+    }
+
+    .timeline-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: #a78bfa;
+    }
+
+    .timeline-label {
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    .timeline-arrow {
+        font-size: 1.2rem;
+        animation: arrow-pulse 2s infinite;
+    }
+
+    @keyframes arrow-pulse {
+        0% { transform: translateX(0); opacity: 0.5; }
+        50% { transform: translateX(10px); opacity: 1; }
+        100% { transform: translateX(0); opacity: 0.5; }
+    }
+
+    /* Add shine animation to the split sections */
+    .split-train::after,
+    .split-val::after,
+    .split-test::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.2),
+            transparent
+        );
+        animation: shine 3s infinite;
+    }
+
+    @keyframes shine {
+        0% { left: -100%; }
+        100% { left: 100%; }
+    }
     """
     custom_js = """
 window.togglePanel = function(id) {
@@ -1060,7 +1497,143 @@ document.addEventListener('DOMContentLoaded', function() {
                 open_by_default=True
             ),
             
-            # Key Model Details in Collapsibles
+            # Model Comparison Section
+            panel_section(
+                "model_comparison",
+                "Model Comparison",
+                ui.tags.div(
+                    ui.tags.div(
+                        "Compare model predictions across stocks and time periods",
+                        class_="model-comparison-subtitle",
+                        style="color: #e0e0e0; font-size: 1.1rem; margin-bottom: 1.5rem; text-align: center;"
+                    ),
+                    # Controls Container
+                    ui.tags.div(
+                        # Left Panel - Stock and Time Selection
+                        ui.tags.div(
+                            # Stock Selection
+                            ui.tags.div(
+                                ui.tags.div(
+                                    ui.tags.i(class_="fa fa-chart-line", style="color: #1db954; font-size: 1.2rem;"),
+                                    ui.tags.span("Stock Selection", style="margin-left: 0.5rem; font-size: 1.2rem; font-weight: 600; color: #a78bfa;"),
+                                    style="display: flex; align-items: center; margin-bottom: 1rem;"
+                                ),
+                                ui.input_select(
+                                    "compare_stock_id", "",
+                                    choices={sid: f"Stock {sid}" for sid in stock_ids},
+                                    selected="2",
+                                    width="100%"
+                                ),
+                                style="margin-bottom: 2rem; background: rgba(36, 38, 44, 0.6); padding: 1rem; border-radius: 0.8rem;"
+                            ),
+                            # Time Range Selection
+                            ui.tags.div(
+                                ui.tags.div(
+                                    ui.tags.i(class_="fa fa-clock", style="color: #1db954; font-size: 1.2rem;"),
+                                    ui.tags.span("Time Range", style="margin-left: 0.5rem; font-size: 1.2rem; font-weight: 600; color: #a78bfa;"),
+                                    style="display: flex; align-items: center; margin-bottom: 1rem;"
+                                ),
+                                ui.input_slider(
+                                    "compare_time_range", "",
+                                    min=TIME_MIN, max=TIME_MAX,
+                                    value=[TIME_MIN, TIME_MAX],
+                                    step=10
+                                ),
+                                style="background: rgba(36, 38, 44, 0.6); padding: 1rem; border-radius: 0.8rem;"
+                            ),
+                            style="flex: 1.2; padding-right: 2rem;"
+                        ),
+                        # Right Panel - Model Selection
+                        ui.tags.div(
+                            ui.tags.div(
+                                ui.tags.i(class_="fa fa-brain", style="color: #1db954; font-size: 1.2rem;"),
+                                ui.tags.span("Model Selection", style="margin-left: 0.5rem; font-size: 1.2rem; font-weight: 600; color: #a78bfa;"),
+                                style="display: flex; align-items: center; margin-bottom: 1rem;"
+                            ),
+                            ui.tags.div(
+                                # Main Model (GAT)
+                                ui.tags.div(
+                                    ui.tags.div(
+                                        ui.input_checkbox("model_GAT", "GAT", value=True),
+                                        ui.tags.div(
+                                            "Graph Attention Network",
+                                            style="font-size: 0.8rem; color: #666; margin-top: 0.2rem;"
+                                        ),
+                                        style=f"margin-bottom: 1rem; color: {MODEL_COLORS['GAT']}; font-weight: 700; font-size: 1.1rem; padding: 0.8rem; background: rgba(255, 0, 102, 0.1); border-radius: 0.5rem;"
+                                    ),
+                                ),
+                                # Divider
+                                ui.tags.div(
+                                    "Traditional Models",
+                                    style="color: #666; font-size: 0.9rem; margin: 1rem 0; padding-top: 0.5rem; border-top: 1px solid #444;"
+                                ),
+                                # Traditional Models Group
+                                ui.tags.div(
+                                    *[ui.tags.div(
+                                        ui.tags.div(
+                                            ui.input_checkbox(
+                                                f"model_{model_id}", 
+                                                model_name,
+                                                value=True
+                                            ),
+                                            ui.tags.div(
+                                                f"RMSE: {MODEL_METRICS.get(model_name, {}).get('RMSE', 'N/A'):.6f}" if model_name in MODEL_METRICS else "",
+                                                style="font-size: 0.75rem; color: #666; margin-top: 0.2rem;"
+                                            ),
+                                        ),
+                                        style=f"margin-bottom: 0.8rem; color: {MODEL_COLORS[model_name]}; font-weight: 500; padding: 0.5rem; border-radius: 0.3rem; background: rgba(36, 38, 44, 0.3);"
+                                    ) for model_id, model_name in [
+                                        ('PCA_Linear', 'PCA Linear'),
+                                        ('EWMA', 'EWMA'),
+                                        ('LAG1', 'LAG1'),
+                                        ('HAR_RV', 'HAR-RV')
+                                    ]],
+                                    style="margin-bottom: 1rem;"
+                                ),
+                                # Divider
+                                ui.tags.div(
+                                    "Machine Learning Models",
+                                    style="color: #666; font-size: 0.9rem; margin: 1rem 0; padding-top: 0.5rem; border-top: 1px solid #444;"
+                                ),
+                                # ML Models Group
+                                ui.tags.div(
+                                    *[ui.tags.div(
+                                        ui.tags.div(
+                                            ui.input_checkbox(
+                                                f"model_{model_id}", 
+                                                model_name,
+                                                value=True
+                                            ),
+                                            ui.tags.div(
+                                                f"RMSE: {MODEL_METRICS.get(model_name, {}).get('RMSE', 'N/A'):.6f}" if model_name in MODEL_METRICS else "",
+                                                style="font-size: 0.75rem; color: #666; margin-top: 0.2rem;"
+                                            ),
+                                        ),
+                                        style=f"margin-bottom: 0.8rem; color: {MODEL_COLORS[model_name]}; font-weight: 500; padding: 0.5rem; border-radius: 0.3rem; background: rgba(36, 38, 44, 0.3);"
+                                    ) for model_id, model_name in [
+                                        ('Gradient_Boosting', 'Gradient Boosting'),
+                                        ('Random_Forest', 'Random Forest'),
+                                        ('Linear', 'Linear')
+                                    ]],
+                                ),
+                                style="background: rgba(36, 38, 44, 0.6); padding: 1.2rem; border-radius: 0.8rem;"
+                            ),
+                            style="flex: 1; border-left: 1px solid #444; padding-left: 2rem;"
+                        ),
+                        style="padding: 2rem; background: rgba(36, 38, 44, 0.95); border-radius: 1rem; margin-bottom: 1.5rem; display: flex; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);"
+                    ),
+                    ui.output_plot("model_comparison_plot", width="100%", height="500px"),
+                    ui.tags.div(style="height:1.5rem"),  # small spacer
+                    ui.tags.div(
+                        ui.output_table("model_metrics_table"),
+                        style="overflow-x:auto; max-width:100%;"
+                    ),
+                    class_="model-comparison-content",
+                    style="padding: 2rem; background: rgba(36, 38, 44, 0.92); border-radius: 1rem; margin-bottom: 2rem;"
+                )
+            ),
+            
+            # Training Approach Section
             panel_section(
                 "eval",
                 "Training Approach",
@@ -1071,11 +1644,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     ui.tags.div(
                         "The dataset is split into three contiguous time blocks: 80% for training, 10% for validation, and 10% for testing. This approach preserves the natural temporal order of the data, ensuring that the model is always evaluated on future data it has never seen.",
                         class_="model-eval-desc"
-                    ),
+                    )
                 )
             ),
             
-            # Compact Model Introduction
+            # Model Details Section
             panel_section(
                 "model",
                 "Model Details",
@@ -1113,461 +1686,302 @@ document.addEventListener('DOMContentLoaded', function() {
         )
     )
 
-# --- Server logic for network graph ---
+def empty_plot(message):
+    """Helper to create empty plot with message"""
+    fig, ax = plt.subplots(figsize=(8, 6))
+    fig.patch.set_facecolor('#23272f')
+    ax.set_facecolor('#23272f')
+    ax.text(0.5, 0.5, message,
+            ha='center', va='center',
+            color='#a78bfa', fontsize=12)
+    ax.set_xticks([])
+    ax.set_yticks([])
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+    return fig
+
+def setup_dark_plot(fig, ax):
+    """Helper to setup dark mode plot styling"""
+    fig.patch.set_facecolor('#23272f')
+    ax.set_facecolor('#23272f')
+    ax.tick_params(colors='#a78bfa')
+    ax.grid(True, alpha=0.2, color='#a78bfa', linestyle='--')
+    for spine in ax.spines.values():
+        spine.set_color('#444')
+    return ax
+
 def server_model_details(input, output, session):
-    # --- Load real explanations data ---
-    try:
-        explain_df = pd.read_csv("data/mini_all_explanations.csv")
-    except Exception as _:
-        explain_df = None
+    @output
+    @render.plot
+    def model_comparison_plot():
+        # Create figure with dark theme
+        plt.style.use('dark_background')
+        fig, ax = plt.subplots(figsize=(12, 6))
+        fig.patch.set_facecolor('#23272f')
+        ax.set_facecolor('#23272f')
+        
+        # Get selected stock and time range
+        stock_id = input.compare_stock_id()
+        time_range = input.compare_time_range()
+        time_start, time_end = time_range[0], time_range[1]
+        
+        # Get actual data first from any available model
+        actual_data = None
+        for model_name in MODEL_COLORS.keys():
+            if model_name in model_data and model_data[model_name] is not None:
+                df = model_data[model_name]
+                df_filtered = df[
+                    (df['stock_id'] == stock_id) & 
+                    (df['time_id'].between(time_start, time_end))
+                ]
+                if not df_filtered.empty:
+                    actual_data = df_filtered[['time_id', 'actual']]
+                    break
+        
+        # Track if any models are selected and plot them
+        any_model_selected = False
+        max_volatility = 0
+        min_volatility = float('inf')
+        
+        # Plot data for selected models
+        for model_name, color in MODEL_COLORS.items():
+            # Convert the display name to the checkbox input id suffix used in
+            # the UI (spaces / hyphens -> underscores)
+            model_id = _sanitize_model_id(model_name)
 
-    # Precompute choices for stock and time ids
-    if explain_df is not None:
-        STOCK_CHOICES = {str(s): f"Stock {s}" for s in sorted(explain_df["stock_idx"].unique())}
-        MAX_TIME = int(explain_df["time_idx"].max())
-    else:
-        STOCK_CHOICES = {"43": "Stock 43"}
-        MAX_TIME = 0
-
-    # Track selected stock and time_id
-    selected_stock = reactive.Value("43")
-    selected_time = reactive.Value("-1")
-    last_analyzed = reactive.Value(False)
-    
-    # React to the analyze button click
-    @reactive.Effect
-    @reactive.event(input.analyze_stock_btn)
-    def _():
-        selected_stock.set(input.interp_stock_id())
-        selected_time.set(input.interp_time_id())
-        last_analyzed.set(True)
-        # In a real application, this would trigger an API call
-        # or data loading operation to get the specific model outputs
-        print(f"Analyzing stock {selected_stock()} at time {selected_time()}")
-    
-    @reactive.Calc
-    def get_stock_interpretation_data():
-        if not last_analyzed() or explain_df is None:
-            return None
-
-        try:
-            sid = int(selected_stock())
-            # obtain subset for stock
-            sub = explain_df[explain_df["stock_idx"] == sid].sort_values("time_idx")
-            if sub.empty:
-                return None
-
-            # determine offset based on selected_time (string like "-1")
-            idx = int(selected_time())
-            if idx not in sub["time_idx"].values:
-                idx = int(sub["time_idx"].max())
-            row = sub[sub["time_idx"] == idx].iloc[0]
-
-            # extract values
-            pred = float(row["prediction"])
-            actual = float(row["actual"])
-            err_pct = float(row["error_pct"])
-
-            # Calculate simple metrics across the stock history
-            errs = sub["prediction"] - sub["actual"]
-            avg_error = float(errs.mean() * 100)  # percentage
-            rmse = float((errs ** 2).mean() ** 0.5 * 100)
-            # A naive confidence metric: inverse of std dev of prediction errors
+            # Skip models that are not selected by the user
             try:
-                confidence = float(max(0.0, 100 - errs.std()*1000))
+                if not getattr(input, f"model_{model_id}")():
+                    continue
             except Exception:
-                confidence = 0.0
+                # If the checkbox doesn't exist for some reason, skip safely
+                continue
 
-            # feature importance columns start with 'fi_'
-            fi_cols = [c for c in explain_df.columns if c.startswith("fi_")]
-            fi_dict = {c.replace("fi_", "").strip(): float(row[c]) for c in fi_cols}
-
-            # neighbors
-            neighbors = []
-            for i in range(1,4):
-                stock_col = f"nbr{i}_stock"
-                weight_col = f"nbr{i}_weight"
-                if stock_col in row and weight_col in row:
-                    neighbors.append({"stock": str(row[stock_col]).replace("Stock ", "").strip(), "influence": float(row[weight_col])})
-
-            return {
-                "stock_id": selected_stock(),
-                "time_id": row["time_idx"],
-                "prediction": pred,
-                "actual": actual,
-                "error_pct": err_pct,
-                "avg_error": avg_error,
-                "rmse": rmse,
-                "confidence": confidence,
-                "feature_importance": fi_dict,
-                "influential_neighbors": neighbors,
-                "history": sub  # full df for plotting
-            }
-        except Exception as _:
-            return None
-    
-    @output
-    @render.ui
-    def network_graph_ui():
-        try:
-            df = pd.read_csv("data/high_attention_pairs.csv")
-            if df.empty:
-                return ui.tags.div("No data in high_attention_pairs.csv", style="text-align:center;color:#a78bfa;font-size:1.2rem;padding:2.5rem 0;", class_="model-network-plot-wrap")
-            top_pairs = df.nlargest(7, "WEIGHT")
-            G = nx.Graph()
-            for _, row in top_pairs.iterrows():
-                G.add_edge(str(row["SOURCE"]), str(row["TARGET"]), weight=row["WEIGHT"])
-            pos = nx.spring_layout(G, seed=42)
-            plt.figure(figsize=(6, 4))
-            edges = G.edges(data=True)
-            weights = [d['weight']*10 for (_, _, d) in edges]
-            nx.draw_networkx_edges(G, pos, width=weights, edge_color="#a78bfa", alpha=0.6)
-            nx.draw_networkx_nodes(G, pos, node_color="#1db954", node_size=600, alpha=0.85)
-            nx.draw_networkx_labels(G, pos, font_color="#fff", font_weight="bold")
-            plt.axis('off')
-            import io
-            buf = io.BytesIO()
-            plt.tight_layout()
-            plt.savefig(buf, format="png", bbox_inches="tight", transparent=True)
-            plt.close()
-            buf.seek(0)
-            import base64
-            img_b64 = base64.b64encode(buf.read()).decode("utf-8")
-            return ui.tags.div(
-                ui.tags.img(src=f"data:image/png;base64,{img_b64}", style="display:block;margin:0 auto;max-width:100%;height:auto;border-radius:1.2rem;box-shadow:0 2px 12px #1db95422;"),
-                class_="model-network-plot-wrap",
-                style="display:flex;justify-content:center;align-items:center;text-align:center;min-height:260px;"
+            any_model_selected = True
+            if model_name in model_data and model_data[model_name] is not None:
+                df = model_data[model_name]
+                df_filtered = df[
+                    (df['stock_id'] == stock_id) & 
+                    (df['time_id'].between(time_start, time_end))
+                ]
+                if not df_filtered.empty:
+                    # Plot model predictions
+                    ax.plot(
+                        df_filtered['time_id'],
+                        df_filtered['predicted'],
+                        label=f'{model_name}',
+                        color=color,
+                        linewidth=2.5,
+                        alpha=0.8
+                    )
+                    max_volatility = max(max_volatility, df_filtered['predicted'].max())
+                    min_volatility = min(min_volatility, df_filtered['predicted'].min())
+        
+        # Always plot actual values if we have them
+        if actual_data is not None:
+            label = 'Actual' if any_model_selected else 'Actual Values'
+            line = ax.plot(
+                actual_data['time_id'],
+                actual_data['actual'],
+                label=label,
+                color='white',
+                linestyle='--' if any_model_selected else '-',
+                linewidth=2.5,
+                alpha=0.9
             )
-        except Exception as e:
-            return ui.tags.div(f"Error rendering network: {e}", style="text-align:center;color:#a78bfa;font-size:1.2rem;padding:2.5rem 0;", class_="model-network-plot-wrap")
+            max_volatility = max(max_volatility, actual_data['actual'].max())
+            min_volatility = min(min_volatility, actual_data['actual'].min())
+        
+        # Customize plot
+        title = f'Stock {stock_id} Volatility Predictions'
+        if not any_model_selected:
+            title += ' (Showing only actual values)'
+        ax.set_title(title, color='#1db954', size=16, pad=20, fontweight='bold')
+        ax.set_xlabel('Time', color='white', size=12, fontweight='bold')
+        ax.set_ylabel('Volatility', color='white', size=12, fontweight='bold')
+        
+        # Set y-axis limit with padding
+        if max_volatility > 0 or min_volatility < float('inf'):
+            padding = (max_volatility - min_volatility) * 0.1 if max_volatility > min_volatility else max_volatility * 0.1
+            ax.set_ylim(min_volatility - padding, max_volatility + padding)
+        
+        # Style the plot
+        ax.grid(True, alpha=0.15, color='white', linestyle='--', linewidth=0.5)
+        ax.tick_params(colors='#a78bfa', labelsize=10)
+        
+        # Make spines lighter
+        for spine in ax.spines.values():
+            spine.set_color('#444444')
+            spine.set_linewidth(0.5)
+            
+        # Add legend with better positioning and styling
+        if actual_data is not None or any_model_selected:  # Only add legend if there's something to show
+            legend = ax.legend(
+                facecolor='#23272f',
+                edgecolor='#444444',
+                fontsize=10,
+                loc='upper right',
+                bbox_to_anchor=(0.99, 0.99),
+                framealpha=0.8,
+                borderpad=1,
+                labelspacing=0.8
+            )
+            for text in legend.get_texts():
+                text.set_color('white')
+        
+        # Adjust layout
+        plt.tight_layout()
+        return fig
 
+    # ------------------------------------------------------------------
+    # Model metrics summary table
+    # ------------------------------------------------------------------
     @output
-    @render.ui
-    def temporal_split_plot():
-        return ui.HTML("""
-<div class="temporal-split-bar-wrap">
-  <div class="temporal-split-bar">
-    <div class="split-segment train">
-      <span class="split-tooltip">Train: 80%</span>
-    </div>
-    <div class="split-segment val">
-      <span class="split-tooltip">Validation: 10%</span>
-    </div>
-    <div class="split-segment test">
-      <span class="split-tooltip">Test: 10%</span>
-    </div>
-  </div>
-</div>
-<style>
-.temporal-split-bar-wrap { width: 100%; max-width: 700px; margin: 0 auto 2.2rem auto; }
-.temporal-split-bar {
-  display: flex; height: 3.5rem; border-radius: 2rem; overflow: visible;
-  box-shadow: 0 4px 24px #000a; background: #23272f;
-  position: relative;
-}
-.split-segment {
-  height: 100%; transition: background 0.3s, box-shadow 0.3s, transform 0.2s; position: relative;
-  box-shadow: 0 0 16px 0 rgba(29,185,84,0.12), 0 2px 8px 0 rgba(167,139,250,0.10);
-  overflow: visible;
-}
-.split-segment.train { width: 80%; background: linear-gradient(90deg, #1db954 60%, #43e97b 100%); box-shadow: 0 0 24px 0 #1db95455; }
-.split-segment.val { width: 10%; background: linear-gradient(90deg, #a78bfa 60%, #7c3aed 100%); box-shadow: 0 0 24px 0 #a78bfa55; }
-.split-segment.test { width: 10%; background: linear-gradient(90deg, #fbbf24 60%, #f59e42 100%); box-shadow: 0 0 24px 0 #fbbf2455; }
-.split-segment:hover {
-  filter: brightness(1.12);
-  transform: scale(1.03);
-  z-index: 2;
-  box-shadow: 0 0 32px 0 #fff5, 0 0 24px 0 #1db95455;
-}
-.split-tooltip {
-  visibility: hidden;
-  opacity: 0;
-  position: absolute;
-  left: 50%;
-  top: 110%;
-  transform: translateX(-50%);
-  background: #23272f;
-  color: #fff;
-  padding: 0.7rem 1.2rem;
-  border-radius: 0.9rem;
-  font-size: 1.13rem;
-  font-weight: 900;
-  white-space: nowrap;
-  box-shadow: 0 2px 12px #1db95422;
-  z-index: 10;
-  transition: opacity 0.2s, visibility 0.2s;
-  pointer-events: none;
-}
-.split-segment:hover .split-tooltip {
-  visibility: visible;
-  opacity: 1;
-  pointer-events: auto;
-}
-</style>
-""")
+    @render.table
+    def model_metrics_table():
+        """Display the metrics from ``model_metrics_summary.csv`` for the
+        models that are currently selected in the checkbox list. If no model is
+        selected, fall back to the GAT model so the table never appears empty.
+        """
 
-    @output
-    @render.ui
-    def training_flow_diagram():
-        return ui.HTML("""
-<div class="training-flow-diagram">
-  <div class="flow-block train" title="Train: 80%">Train</div>
-  <svg class="flow-arrow" width="60" height="32"><polygon points="0,16 50,16 40,8 40,24" fill="#fff"/></svg>
-  <div class="flow-block val" title="Validation: 10%">Validation</div>
-  <svg class="flow-arrow" width="60" height="32"><polygon points="0,16 50,16 40,8 40,24" fill="#fff"/></svg>
-  <div class="flow-block test" title="Test: 10%">Test</div>
-</div>
-<style>
-.training-flow-diagram {
-  display: flex; align-items: center; justify-content: center; gap: 0.7rem; margin: 2.2rem 0;
-}
-.flow-block {
-  padding: 0.9rem 2.2rem; border-radius: 1.2rem; font-size: 1.18rem; font-weight: 900;
-  font-family: 'Inter', sans-serif; color: #23272f; box-shadow: 0 2px 12px #1db95422;
-  transition: filter 0.2s;
-}
-.flow-block.train { background: linear-gradient(135deg, #1db954 60%, #43e97b 100%); }
-.flow-block.val { background: linear-gradient(135deg, #a78bfa 60%, #7c3aed 100%); }
-.flow-block.test { background: linear-gradient(135deg, #fbbf24 60%, #f59e42 100%); }
-.flow-block:hover { filter: brightness(1.15); cursor: pointer; }
-.flow-arrow { display: inline-block; vertical-align: middle; }
-</style>
-""")
+        if metrics_df is None or metrics_df.empty:
+            return pd.DataFrame()
 
-    @output
-    @render.ui
-    def model_workflow_diagram():
-        return ui.HTML("""
-<div class="workflow-diagram-container">
-  <div class="workflow-diagram">
-    <!-- Top row -->
-    <div class="workflow-row">
-      <div class="workflow-box train-box">
-        Train model<br>on Training Set
-      </div>
-      <div class="workflow-arrow">→</div>
-      <div class="workflow-box validate-box">
-        Evaluate model<br>on Validation Set
-      </div>
-    </div>
-    
-    <!-- Loop arrow -->
-    <div class="workflow-loop-container">
-      <div class="workflow-loop-arrow"></div>
-    </div>
-    
-    <!-- Middle row with transparent box -->
-    <div class="workflow-row center-row">
-      <div class="workflow-transparent-box">
-        Tweak model according<br>to results on <span class="highlight-validation">Validation Set</span>
-      </div>
-    </div>
-    
-    <!-- Bottom row -->
-    <div class="workflow-row">
-      <div class="workflow-box train-box">
-        Pick model that does<br>best on <span class="highlight-validation">Validation Set</span>
-      </div>
-      <div class="workflow-arrow">→</div>
-      <div class="workflow-box test-box">
-        Confirm results<br>on <span class="highlight-test">Test Set</span>
-      </div>
-    </div>
-  </div>
-</div>
-<style>
-.workflow-diagram-container {
-  width: 100%;
-  max-width: 650px;
-  margin: 2rem auto;
-}
+        # Determine which models the user has ticked
+        selected = []
+        for model_name in MODEL_COLORS.keys():
+            model_id = _sanitize_model_id(model_name)
+            try:
+                if getattr(input, f"model_{model_id}")():
+                    selected.append(model_name)
+            except Exception:
+                continue
 
-.workflow-diagram {
-  background-color: rgba(30, 32, 42, 0.5);
-  border: 2px dashed rgba(68, 85, 137, 0.7);
-  border-radius: 16px;
-  padding: 30px 25px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
+        if not selected:
+            # If no models selected, show all models
+            selected = list(MODEL_COLORS.keys())
 
-.workflow-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  margin-bottom: 10px;
-  position: relative;
-  z-index: 2;
-}
+        # Filter the metrics dataframe (index is 'Model')
+        df = metrics_df.copy()
+        
+        # Map model names to their display names
+        model_display_names = {
+            'GAT': 'GAT',
+            'PCA_Linear': 'PCA Linear',
+            'EWMA': 'EWMA',
+            'LAG1': 'LAG1',
+            'HAR_RV': 'HAR-RV',
+            'Gradient_Boosting': 'Gradient Boosting',
+            'Random_Forest': 'Random Forest',
+            'Linear': 'Linear'
+        }
+        
+        if "Model" in df.columns:
+            # guard against unexpected structure
+            df_filtered = df[df["Model"].isin(selected)].reset_index(drop=True)
+            # Map model names to display names
+            df_filtered['Model'] = df_filtered['Model'].map(lambda x: model_display_names.get(x, x))
+        else:
+            df_filtered = df.loc[df.index.intersection(selected)].reset_index()
+            df_filtered['Model'] = df_filtered['Model'].map(lambda x: model_display_names.get(x, x))
 
-.workflow-box {
-  padding: 1.1rem 1rem;
-  border-radius: 8px;
-  text-align: center;
-  font-weight: 600;
-  color: white;
-  line-height: 1.5;
-  width: 45%;
-  max-width: 240px;
-  font-size: 0.95rem;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
-}
+        # Format numeric columns with appropriate decimal places
+        if not df_filtered.empty:
+            df_filtered['RMSE'] = df_filtered['RMSE'].apply(lambda x: f"{float(x):.6f}")
+            df_filtered['QLIKE'] = df_filtered['QLIKE'].apply(lambda x: f"{float(x):.4f}")
+            df_filtered['RMPSE'] = df_filtered['RMPSE'].apply(lambda x: f"{float(x):.2f}")
 
-.train-box {
-  background: linear-gradient(to bottom, #0c6e32, #0e5a2a);
-  border: 2px solid #1db954;
-}
+        # Add custom styling
+        styled_df = df_filtered.style\
+            .set_properties(**{
+                'background-color': '#23272f',
+                'color': 'white',
+                'border': '1px solid #444',
+                'padding': '12px 15px',
+                'font-size': '14px',
+                'text-align': 'center'
+            })\
+            .set_table_styles([
+                {'selector': 'thead th', 
+                 'props': [
+                     ('background-color', '#1e2027'),
+                     ('color', '#1db954'),
+                     ('font-weight', 'bold'),
+                     ('padding', '12px 15px'),
+                     ('border', '1px solid #444'),
+                     ('font-size', '15px')
+                 ]},
+                {'selector': 'tbody tr:hover',
+                 'props': [('background-color', '#2a2d36')]},
+                {'selector': 'tbody tr:nth-child(even)',
+                 'props': [('background-color', '#20232b')]},
+            ])\
+            .hide(axis="index")  # Hide index column
 
-.validate-box {
-  background: linear-gradient(to bottom, #543ba3, #412c82);
-  border: 2px solid #7c3aed;
-}
+        return styled_df
 
-.test-box {
-  background: linear-gradient(to bottom, #9c6614, #805111);
-  border: 2px solid #fbbf24;
-}
+    # Create interpretation data reactive Calc inside server to access valid input
+    @reactive.Calc
+    def interp_data():
+        if explain_df is None:
+            return None
+        sid = input.interp_stock_id()
+        try:
+            time_val = int(input.interp_time_id())
+        except Exception:
+            time_val = None
+        df_sub = explain_df[explain_df['stock_idx'] == sid]
+        if df_sub.empty:
+            return None
+        if time_val is None or time_val not in df_sub['time_idx'].values:
+            time_val = df_sub['time_idx'].max()
+        row = df_sub[df_sub['time_idx'] == time_val].iloc[0]
+        fi_cols = [c for c in df_sub.columns if c.startswith('fi_')]
+        fi = {c.replace('fi_',''): row[c] for c in fi_cols}
+        neighbors = []
+        for i in range(1,4):
+            s_col = f'nbr{i}_stock'
+            w_col = f'nbr{i}_weight'
+            if s_col in row and w_col in row:
+                neighbors.append({'stock': str(row[s_col]).replace('Stock ','').strip(), 'influence': float(row[w_col])})
+        return {
+            'feature_importance': fi,
+            'prediction': row['prediction'],
+            'actual': row['actual'],
+            'history': df_sub.sort_values('time_idx'),
+            'neighbors': neighbors,
+            'stock_id': sid
+        }
 
-.workflow-transparent-box {
-  text-align: center;
-  font-weight: 500;
-  line-height: 1.5;
-  color: #e0e0e0;
-  font-size: 0.95rem;
-  padding: 10px;
-  margin: 5px 0 15px 0;
-}
-
-.highlight-validation {
-  color: #a78bfa;
-  font-weight: 700;
-  text-decoration: underline;
-  text-decoration-color: #a78bfa;
-  text-underline-offset: 3px;
-}
-
-.highlight-test {
-  color: #fbbf24;
-  font-weight: 700;
-  text-decoration: underline;
-  text-decoration-color: #fbbf24;
-  text-underline-offset: 3px;
-}
-
-.workflow-arrow {
-  margin: 0 15px;
-  color: white;
-  font-size: 1.6rem;
-  font-weight: bold;
-}
-
-.workflow-loop-container {
-  position: relative;
-  width: 60%;
-  height: 50px;
-  margin-top: 10px;
-}
-
-.workflow-loop-container::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: -5px;
-  height: 5px;
-  border-left: 3px solid #7c3aed;
-  border-right: 3px solid #7c3aed;
-}
-
-.workflow-loop-container::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  height: 30px;
-  border-left: 3px solid #7c3aed;
-  border-right: 3px solid #7c3aed;
-  border-bottom: 3px solid #7c3aed;
-  border-bottom-left-radius: 10px;
-  border-bottom-right-radius: 10px;
-}
-
-.workflow-loop-arrow {
-  position: absolute;
-  top: -5px;
-  left: -2px;
-  width: 0;
-  height: 0;
-  border-top: 10px solid transparent;
-  border-bottom: 10px solid transparent;
-  border-right: 15px solid #7c3aed;
-  transform: rotate(270deg);
-  z-index: 3;
-}
-
-.center-row {
-  margin-top: -20px;
-  z-index: 1;
-}
-
-@media (max-width: 768px) {
-  .workflow-box {
-    width: 42%;
-    padding: 0.8rem 0.6rem;
-    font-size: 0.85rem;
-  }
-  
-  .workflow-arrow {
-    margin: 0 10px;
-    font-size: 1.4rem;
-  }
-  
-  .workflow-transparent-box {
-    font-size: 0.85rem;
-  }
-}
-</style>
-""")
-
-    # --- Add interactive stock selection for model interpretation ---
+    # --- Stock Interpretation Content ---
     @output
     @render.ui
     def stock_interpretation_ui():
         return ui.tags.div(
             ui.tags.div(
+                "Select a stock and time period to see detailed model interpretation",
+                class_="model-interp-subtitle"
+            ),
+            ui.tags.div(
                 ui.tags.div(
-                    "Select a stock and time period to see detailed model interpretation",
-                    class_="model-interp-subtitle"
+                    ui.input_select(
+                        "interp_stock_id",
+                        "Stock ID",
+                        {sid: f"Stock {sid}" for sid in stock_ids},
+                        selected=stock_ids[0] if stock_ids else "43",
+                        width="100%"
+                    ),
+                    class_="interp-control"
                 ),
                 ui.tags.div(
-                    ui.tags.div(
-                        ui.input_select(
-                            "interp_stock_id", 
-                            "Stock ID",
-                            STOCK_CHOICES,
-                            selected="43",
-                            width="100%"
-                        ),
-                        class_="interp-control"
-                    ),
-                    ui.tags.div(
-                        ui.input_numeric("interp_time_id", "Time Index (0-latest)", value=MAX_TIME, min=0, max=MAX_TIME, step=1, width="100%"),
-                        class_="interp-control"
-                    ),
-                    ui.tags.div(
-                        ui.input_action_button(
-                            "analyze_stock_btn",
-                            "Analyze",
-                            class_="analyze-btn"
-                        ),
-                        class_="interp-control"
-                    ),
-                    class_="interp-controls-row"
+                    ui.input_numeric("interp_time_id", "Time Index (0-latest)", value=0, min=0, step=1, width="100%"),
+                    class_="interp-control"
                 ),
-                class_="stock-interp-header"
+                ui.tags.div(
+                    ui.input_action_button("analyze_stock_btn", "Analyze", class_="analyze-btn"),
+                    class_="interp-control"
+                ),
+                class_="interp-controls-row"
             ),
             ui.tags.div(
                 ui.tags.div(
@@ -1576,14 +1990,8 @@ def server_model_details(input, output, session):
                     class_="section-header"
                 ),
                 ui.tags.div(
-                    ui.tags.div(
-                        ui.output_ui("feature_importance_plot"),
-                        class_="plot-container"
-                    ),
-                    ui.tags.div(
-                        ui.output_ui("prediction_vs_actual_plot"),
-                        class_="plot-container"
-                    ),
+                    ui.tags.div(ui.output_plot("feature_importance_plot"), class_="plot-container"),
+                    ui.tags.div(ui.output_plot("prediction_vs_actual_plot"), class_="plot-container"),
                     class_="interp-plots-row"
                 ),
                 class_="plots-section"
@@ -1594,212 +2002,104 @@ def server_model_details(input, output, session):
             ),
             id="stock_interp_content"
         )
-    
+
     @output
-    @render.ui
+    @render.plot
     def feature_importance_plot():
-        data = get_stock_interpretation_data()
+        data = interp_data()
         if data is None:
-            # Return an empty plot if no data
-            import plotly.graph_objects as go
-            fig = go.Figure()
-            fig.update_layout(
-                title='Click "Analyze" to see Feature Importance',
-                template='plotly_dark',
-                plot_bgcolor='rgba(36,38,44,0.8)',
-                paper_bgcolor='rgba(36,38,44,0.8)',
-                height=400,
-                width=500
-            )
-            return ui.HTML(fig.to_html(include_plotlyjs="cdn"))
-        
-        import plotly.graph_objects as go
-        import pandas as pd
-        
-        # Get feature importance data
-        feature_importance = data["feature_importance"]
-        
-        # Create a DataFrame for plotting
-        df = pd.DataFrame({
-            'Feature': list(feature_importance.keys()),
-            'Importance': list(feature_importance.values())
-        })
-        
-        # Sort by importance
-        df = df.sort_values('Importance', ascending=True)
-        
-        # Create a horizontal bar chart
-        fig = go.Figure()
-        fig.add_trace(go.Bar(
-            y=df['Feature'],
-            x=df['Importance'],
-            orientation='h',
-            marker_color=['rgba(29,185,84,0.8)' if x > 0.5 else 'rgba(167,139,250,0.8)' for x in df['Importance']],
-            text=[f"{x:.3f}" for x in df['Importance']],
-            textposition='auto'
-        ))
-        
-        fig.update_layout(
-            title=f'Feature Importance for Stock {data["stock_id"]}',
-            xaxis_title='Importance Score',
-            yaxis_title='Feature',
-            template='plotly_dark',
-            plot_bgcolor='rgba(36,38,44,0.8)',
-            paper_bgcolor='rgba(36,38,44,0.8)',
-            font=dict(
-                family="Inter, sans-serif",
-                size=12,
-                color="#ffffff"
-            ),
-            margin=dict(l=10, r=10, t=50, b=10),
-            height=400,
-            width=500,
-            xaxis=dict(
-                range=[0, max(df['Importance']) * 1.1],
-                showgrid=True,
-                gridcolor='rgba(255,255,255,0.1)'
-            )
-        )
-        
-        return ui.HTML(fig.to_html(include_plotlyjs="cdn"))
-    
+            return empty_plot('Click Analyze to see Feature Importance')
+        fi = data['feature_importance']
+        if not fi:
+            return empty_plot('No feature importance available')
+        keys = list(fi.keys())
+        vals = list(fi.values())
+        fig, ax = plt.subplots(figsize=(4,3))
+        setup_dark_plot(fig, ax)
+        ax.barh(keys, vals, color='#1db954')
+        ax.set_xlabel('Importance', color='white')
+        ax.tick_params(colors='#a78bfa')
+        plt.tight_layout()
+        return fig
+
     @output
-    @render.ui
+    @render.plot
     def prediction_vs_actual_plot():
-        data = get_stock_interpretation_data()
+        data = interp_data()
         if data is None:
-            # Return an empty plot if no data
-            import plotly.graph_objects as go
-            fig = go.Figure()
-            fig.update_layout(
-                title='Click "Analyze" to see Prediction vs Actual',
-                template='plotly_dark',
-                plot_bgcolor='rgba(36,38,44,0.8)',
-                paper_bgcolor='rgba(36,38,44,0.8)',
-                height=400,
-                width=500
-            )
-            return ui.HTML(fig.to_html(include_plotlyjs="cdn"))
-            
-        # Build historical series from data['history']
-        import plotly.graph_objects as go
-        hist = data["history"].sort_values("time_idx")
-        # Use numeric Time IDs directly for x-axis to avoid date conversion
-        dates = hist["time_idx"].tolist() if "time_idx" in hist else list(range(len(hist)))
-        # Map: predicted (smoother) <- 'actual' column, actual (volatile) <- 'prediction' column
-        predictions = hist["actual"].tolist()
-        actuals = hist["prediction"].tolist()
-        
-        # Create a line chart
-        fig = go.Figure()
-        
-        fig.add_trace(go.Scatter(
-            x=dates,
-            y=predictions,
-            mode='lines+markers',
-            name='Predicted',
-            line=dict(color='#a78bfa', width=3),
-            marker=dict(size=8)
-        ))
-        
-        fig.add_trace(go.Scatter(
-            x=dates,
-            y=actuals,
-            mode='lines+markers',
-            name='Actual',
-            line=dict(color='#1db954', width=3),
-            marker=dict(size=8)
-        ))
-        
-        fig.add_trace(go.Scatter(
-            x=[dates[-1]],
-            y=[predictions[-1]],
-            mode='markers',
-            name='Current Prediction',
-            marker=dict(color='#a78bfa', size=14, line=dict(color='white', width=2))
-        ))
-        
-        fig.add_trace(go.Scatter(
-            x=[dates[-1]],
-            y=[actuals[-1]],
-            mode='markers',
-            name='Current Actual',
-            marker=dict(color='#1db954', size=14, line=dict(color='white', width=2))
-        ))
-        
-        fig.update_layout(
-            title=f'Prediction vs Actual Over Time for Stock {data["stock_id"]}',
-            xaxis_title='Time ID',
-            yaxis_title='Realized Volatility',
-            template='plotly_dark',
-            plot_bgcolor='rgba(36,38,44,0.8)',
-            paper_bgcolor='rgba(36,38,44,0.8)',
-            font=dict(
-                family="Inter, sans-serif",
-                size=12,
-                color="#ffffff"
-            ),
-            legend=dict(
-                orientation="h",
-                yanchor="top",
-                y=-0.2,  # Position legend below the plot to avoid overlap
-                xanchor="center",
-                x=0.5
-            ),
-            margin=dict(l=10, r=10, t=70, b=80),  # Increased bottom margin for legend space
-            height=400,
-            width=500
-        )
-        
-        return ui.HTML(fig.to_html(include_plotlyjs="cdn"))
-    
+            return empty_plot('Click Analyze to see Prediction vs Actual')
+        hist = data['history']
+        fig, ax = plt.subplots(figsize=(4,3))
+        setup_dark_plot(fig, ax)
+        ax.plot(hist['time_idx'], hist['prediction'], label='Pred', color='#1db954')
+        ax.plot(hist['time_idx'], hist['actual'], label='Actual', color='#a78bfa')
+        ax.legend(facecolor='#23272f', edgecolor='#23272f')
+        ax.set_xlabel('Time', color='white')
+        ax.set_ylabel('Volatility', color='white')
+        plt.tight_layout()
+        return fig
+
     @output
     @render.ui
     def influential_neighbors_ui():
-        data = get_stock_interpretation_data()
-        if data is None:
+        data = interp_data()
+        if data is None or not data['neighbors']:
             return ui.tags.div(
                 ui.tags.div(
-                    ui.tags.i(class_="fa fa-network-wired"),
-                    ui.tags.div("Network Influence Analysis", class_="section-title"),
-                    class_="section-header"
+                    ui.tags.i(class_='fa fa-network-wired'),
+                    ui.tags.div('Network Influence Analysis', class_='section-title'),
+                    class_='section-header'
                 ),
-                ui.tags.div("Analyze a stock to see its influential neighbors", class_="neighbors-placeholder"),
-                class_="neighbors-container"
+                ui.tags.div('Analyze a stock to see its influential neighbors', class_='neighbors-placeholder'),
+                class_='neighbors-container'
             )
-            
-        # Get influential neighbors data
-        neighbors = data["influential_neighbors"]
-        
-        neighbor_elements = []
-        for neighbor in neighbors:
-            neighbor_elements.append(
+        neighbor_rows = []
+        for n in data['neighbors']:
+            neighbor_rows.append(
                 ui.tags.div(
-                    ui.tags.div(f"Stock {neighbor['stock']}", class_="neighbor-stock"),
+                    ui.tags.div(f"Stock {n['stock']}", class_='neighbor-stock'),
                     ui.tags.div(
-                        ui.tags.div(
-                            style=f"width: {neighbor['influence']*100:.0f}%",
-                            class_="influence-bar",
-                            id=f"bar-{neighbor['stock']}",
-                            **{"data-value": f"{neighbor['influence']:.2f}"}
-                        ),
-                        class_="influence-bar-container"
+                        ui.tags.div(style=f"width:{n['influence']*100:.0f}%", class_='influence-bar'),
+                        class_='influence-bar-container'
                     ),
-                    ui.tags.div(f"{neighbor['influence']:.2f}", class_="influence-value"),
-                    class_="neighbor-row"
+                    ui.tags.div(f"{n['influence']:.2f}", class_='influence-value'),
+                    class_='neighbor-row'
                 )
             )
-        
         return ui.tags.div(
             ui.tags.div(
-                ui.tags.i(class_="fa fa-network-wired"),
-                ui.tags.div("Network Influence Analysis", class_="section-title"),
-                class_="section-header"
+                ui.tags.i(class_='fa fa-network-wired'),
+                ui.tags.div('Network Influence Analysis', class_='section-title'),
+                class_='section-header'
             ),
-            ui.tags.div(f"Influential Neighbors for Stock {data['stock_id']}", class_="neighbors-title"),
+            ui.tags.div(*neighbor_rows, class_='neighbors-list'),
+            class_='neighbors-container'
+        )
+
+    @output
+    @render.ui
+    def temporal_split_plot():
+        return ui.tags.div(
             ui.tags.div(
-                *neighbor_elements,
-                class_="neighbors-list"
+                ui.tags.div("Data Split Timeline", class_="split-title"),
+                ui.tags.div(
+                    ui.tags.div("Training (80%)", class_="split-train"),
+                    ui.tags.div("Val (10%)", class_="split-val"),
+                    ui.tags.div("Test (10%)", class_="split-test"),
+                    class_="split-bar"
+                ),
+                ui.tags.div(
+                    ui.tags.div(
+                        ui.tags.div("Time", class_="timeline-label"),
+                        ui.tags.div(
+                            ui.tags.i(class_="fa fa-arrow-right"),
+                            class_="timeline-arrow"
+                        ),
+                        class_="timeline-container"
+                    ),
+                    class_="timeline-wrapper"
+                ),
+                class_="split-visualization"
             ),
-            class_="neighbors-container"
+            class_="training-approach-section"
         )
