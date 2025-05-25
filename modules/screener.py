@@ -255,6 +255,364 @@ def ui_screener():
                         style="display:flex;align-items:center;gap:10px;"
                     ),
                     ui.output_plot("screener_plot"),
+                    # Add explanatory card for financial statistics
+                    ui.tags.div(
+                        ui.tags.div(
+                            ui.tags.i(class_="fa fa-book-open", style="color: #1db954; margin-right: 10px;"),
+                            "Financial Statistics Explained",
+                            class_="stats-title",
+                            style="""
+                                font-size: 1.5rem;
+                                font-weight: 800;
+                                background: linear-gradient(90deg, #1db954, #a78bfa);
+                                -webkit-background-clip: text;
+                                -webkit-text-fill-color: transparent;
+                                text-align: center;
+                                margin-bottom: 1.5rem;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                padding: 10px;
+                                border-bottom: 2px solid rgba(167, 139, 250, 0.2);
+                            """
+                        ),
+                        ui.tags.div(
+                            ui.tags.div(
+                                ui.tags.div(
+                                    ui.tags.div(
+                                        ui.tags.i(class_="fa fa-chart-line", style="color: #1db954; font-size: 1.4rem;"),
+                                        style="""
+                                            background: rgba(29, 185, 84, 0.1);
+                                            padding: 12px;
+                                            border-radius: 12px;
+                                            margin-right: 15px;
+                                            transition: all 0.3s ease;
+                                        """
+                                    ),
+                                    ui.tags.div(
+                                        ui.tags.span("Volatility", style="font-weight: bold; color: #1db954; font-size: 1.1rem; display: block; margin-bottom: 6px;"),
+                                        ui.tags.p(
+                                            "Measures the degree of variation in a stock's price over time. Higher volatility indicates greater price fluctuations and potentially higher risk/reward.",
+                                            style="margin: 0; color: #e0e0e0; line-height: 1.5;"
+                                        ),
+                                        style="flex: 1;"
+                                    ),
+                                    style="""
+                                        display: flex;
+                                        align-items: flex-start;
+                                        padding: 15px;
+                                        background: rgba(36, 38, 44, 0.6);
+                                        border-radius: 16px;
+                                        margin-bottom: 16px;
+                                        border: 1px solid rgba(29, 185, 84, 0.1);
+                                        transition: all 0.3s ease;
+                                        cursor: pointer;
+                                    """,
+                                    class_="stat-item"
+                                ),
+                                # Repeat similar structure for other statistics with different icons and colors
+                                ui.tags.div(
+                                    ui.tags.div(
+                                        ui.tags.i(class_="fa fa-dollar-sign", style="color: #1db954; font-size: 1.4rem;"),
+                                        style="""
+                                            background: rgba(29, 185, 84, 0.1);
+                                            padding: 12px;
+                                            border-radius: 12px;
+                                            margin-right: 15px;
+                                            transition: all 0.3s ease;
+                                        """
+                                    ),
+                                    ui.tags.div(
+                                        ui.tags.span("Average Mid Price", style="font-weight: bold; color: #1db954; font-size: 1.1rem; display: block; margin-bottom: 6px;"),
+                                        ui.tags.p(
+                                            "The average price between the best bid and ask prices. Represents a fair market value for the stock.",
+                                            style="margin: 0; color: #e0e0e0; line-height: 1.5;"
+                                        ),
+                                        style="flex: 1;"
+                                    ),
+                                    style="""
+                                        display: flex;
+                                        align-items: flex-start;
+                                        padding: 15px;
+                                        background: rgba(36, 38, 44, 0.6);
+                                        border-radius: 16px;
+                                        margin-bottom: 16px;
+                                        border: 1px solid rgba(29, 185, 84, 0.1);
+                                        transition: all 0.3s ease;
+                                        cursor: pointer;
+                                    """,
+                                    class_="stat-item"
+                                ),
+                                # Add similar blocks for other statistics...
+                                ui.tags.div(
+                                    ui.tags.div(
+                                        ui.tags.i(class_="fa fa-chart-area", style="color: #1db954; font-size: 1.4rem;"),
+                                        style="""
+                                            background: rgba(29, 185, 84, 0.1);
+                                            padding: 12px;
+                                            border-radius: 12px;
+                                            margin-right: 15px;
+                                            transition: all 0.3s ease;
+                                        """
+                                    ),
+                                    ui.tags.div(
+                                        ui.tags.span("Total Return", style="font-weight: bold; color: #1db954; font-size: 1.1rem; display: block; margin-bottom: 6px;"),
+                                        ui.tags.p(
+                                            "The total percentage gain or loss in stock value over the selected time period, including both price changes and any distributions.",
+                                            style="margin: 0; color: #e0e0e0; line-height: 1.5;"
+                                        ),
+                                        style="flex: 1;"
+                                    ),
+                                    style="""
+                                        display: flex;
+                                        align-items: flex-start;
+                                        padding: 15px;
+                                        background: rgba(36, 38, 44, 0.6);
+                                        border-radius: 16px;
+                                        margin-bottom: 16px;
+                                        border: 1px solid rgba(29, 185, 84, 0.1);
+                                        transition: all 0.3s ease;
+                                        cursor: pointer;
+                                    """,
+                                    class_="stat-item"
+                                ),
+                                ui.tags.div(
+                                    ui.tags.div(
+                                        ui.tags.i(class_="fa fa-arrows-left-right", style="color: #1db954; font-size: 1.4rem;"),
+                                        style="""
+                                            background: rgba(29, 185, 84, 0.1);
+                                            padding: 12px;
+                                            border-radius: 12px;
+                                            margin-right: 15px;
+                                            transition: all 0.3s ease;
+                                        """
+                                    ),
+                                    ui.tags.div(
+                                        ui.tags.span("Average Spread", style="font-weight: bold; color: #1db954; font-size: 1.1rem; display: block; margin-bottom: 6px;"),
+                                        ui.tags.p(
+                                            "The average difference between the best bid and ask prices. A wider spread typically indicates lower liquidity and higher trading costs.",
+                                            style="margin: 0; color: #e0e0e0; line-height: 1.5;"
+                                        ),
+                                        style="flex: 1;"
+                                    ),
+                                    style="""
+                                        display: flex;
+                                        align-items: flex-start;
+                                        padding: 15px;
+                                        background: rgba(36, 38, 44, 0.6);
+                                        border-radius: 16px;
+                                        margin-bottom: 16px;
+                                        border: 1px solid rgba(29, 185, 84, 0.1);
+                                        transition: all 0.3s ease;
+                                        cursor: pointer;
+                                    """,
+                                    class_="stat-item"
+                                ),
+                                ui.tags.div(
+                                    ui.tags.div(
+                                        ui.tags.i(class_="fa fa-layer-group", style="color: #1db954; font-size: 1.4rem;"),
+                                        style="""
+                                            background: rgba(29, 185, 84, 0.1);
+                                            padding: 12px;
+                                            border-radius: 12px;
+                                            margin-right: 15px;
+                                            transition: all 0.3s ease;
+                                        """
+                                    ),
+                                    ui.tags.div(
+                                        ui.tags.span("Average Bid Size1", style="font-weight: bold; color: #1db954; font-size: 1.1rem; display: block; margin-bottom: 6px;"),
+                                        ui.tags.p(
+                                            "The average size of the best (highest) bid order. Indicates the buying interest at the best bid price level.",
+                                            style="margin: 0; color: #e0e0e0; line-height: 1.5;"
+                                        ),
+                                        style="flex: 1;"
+                                    ),
+                                    style="""
+                                        display: flex;
+                                        align-items: flex-start;
+                                        padding: 15px;
+                                        background: rgba(36, 38, 44, 0.6);
+                                        border-radius: 16px;
+                                        margin-bottom: 16px;
+                                        border: 1px solid rgba(29, 185, 84, 0.1);
+                                        transition: all 0.3s ease;
+                                        cursor: pointer;
+                                    """,
+                                    class_="stat-item"
+                                ),
+                                ui.tags.div(
+                                    ui.tags.div(
+                                        ui.tags.i(class_="fa fa-layer-group", style="color: #1db954; font-size: 1.4rem;"),
+                                        style="""
+                                            background: rgba(29, 185, 84, 0.1);
+                                            padding: 12px;
+                                            border-radius: 12px;
+                                            margin-right: 15px;
+                                            transition: all 0.3s ease;
+                                        """
+                                    ),
+                                    ui.tags.div(
+                                        ui.tags.span("Average Ask Size1", style="font-weight: bold; color: #1db954; font-size: 1.1rem; display: block; margin-bottom: 6px;"),
+                                        ui.tags.p(
+                                            "The average size of the best (lowest) ask order. Indicates the selling interest at the best ask price level.",
+                                            style="margin: 0; color: #e0e0e0; line-height: 1.5;"
+                                        ),
+                                        style="flex: 1;"
+                                    ),
+                                    style="""
+                                        display: flex;
+                                        align-items: flex-start;
+                                        padding: 15px;
+                                        background: rgba(36, 38, 44, 0.6);
+                                        border-radius: 16px;
+                                        margin-bottom: 16px;
+                                        border: 1px solid rgba(29, 185, 84, 0.1);
+                                        transition: all 0.3s ease;
+                                        cursor: pointer;
+                                    """,
+                                    class_="stat-item"
+                                ),
+                                ui.tags.div(
+                                    ui.tags.div(
+                                        ui.tags.i(class_="fa fa-scale-balanced", style="color: #1db954; font-size: 1.4rem;"),
+                                        style="""
+                                            background: rgba(29, 185, 84, 0.1);
+                                            padding: 12px;
+                                            border-radius: 12px;
+                                            margin-right: 15px;
+                                            transition: all 0.3s ease;
+                                        """
+                                    ),
+                                    ui.tags.div(
+                                        ui.tags.span("Order Imbalance", style="font-weight: bold; color: #1db954; font-size: 1.1rem; display: block; margin-bottom: 6px;"),
+                                        ui.tags.p(
+                                            "The difference between buying and selling pressure in the order book. A positive value indicates more buying pressure, while negative indicates more selling pressure.",
+                                            style="margin: 0; color: #e0e0e0; line-height: 1.5;"
+                                        ),
+                                        style="flex: 1;"
+                                    ),
+                                    style="""
+                                        display: flex;
+                                        align-items: flex-start;
+                                        padding: 15px;
+                                        background: rgba(36, 38, 44, 0.6);
+                                        border-radius: 16px;
+                                        margin-bottom: 16px;
+                                        border: 1px solid rgba(29, 185, 84, 0.1);
+                                        transition: all 0.3s ease;
+                                        cursor: pointer;
+                                    """,
+                                    class_="stat-item"
+                                ),
+                                ui.tags.div(
+                                    ui.tags.div(
+                                        ui.tags.i(class_="fa fa-chart-simple", style="color: #1db954; font-size: 1.4rem;"),
+                                        style="""
+                                            background: rgba(29, 185, 84, 0.1);
+                                            padding: 12px;
+                                            border-radius: 12px;
+                                            margin-right: 15px;
+                                            transition: all 0.3s ease;
+                                        """
+                                    ),
+                                    ui.tags.div(
+                                        ui.tags.span("VWAP", style="font-weight: bold; color: #1db954; font-size: 1.1rem; display: block; margin-bottom: 6px;"),
+                                        ui.tags.p(
+                                            "Volume-Weighted Average Price. A trading benchmark that shows the average price a stock has traded at throughout the day, weighted by volume. Used to assess if trades are executed at favorable prices.",
+                                            style="margin: 0; color: #e0e0e0; line-height: 1.5;"
+                                        ),
+                                        style="flex: 1;"
+                                    ),
+                                    style="""
+                                        display: flex;
+                                        align-items: flex-start;
+                                        padding: 15px;
+                                        background: rgba(36, 38, 44, 0.6);
+                                        border-radius: 16px;
+                                        margin-bottom: 16px;
+                                        border: 1px solid rgba(29, 185, 84, 0.1);
+                                        transition: all 0.3s ease;
+                                        cursor: pointer;
+                                    """,
+                                    class_="stat-item"
+                                ),
+                                ui.tags.div(
+                                    ui.tags.div(
+                                        ui.tags.i(class_="fa fa-robot", style="color: #1db954; font-size: 1.4rem;"),
+                                        style="""
+                                            background: rgba(29, 185, 84, 0.1);
+                                            padding: 12px;
+                                            border-radius: 12px;
+                                            margin-right: 15px;
+                                            transition: all 0.3s ease;
+                                        """
+                                    ),
+                                    ui.tags.div(
+                                        ui.tags.span("Predicted Realized Volatility", style="font-weight: bold; color: #1db954; font-size: 1.1rem; display: block; margin-bottom: 6px;"),
+                                        ui.tags.p(
+                                            "Model's prediction of future realized volatility. This forward-looking metric helps anticipate potential price movement magnitudes based on historical patterns and market conditions.",
+                                            style="margin: 0; color: #e0e0e0; line-height: 1.5;"
+                                        ),
+                                        style="flex: 1;"
+                                    ),
+                                    style="""
+                                        display: flex;
+                                        align-items: flex-start;
+                                        padding: 15px;
+                                        background: rgba(36, 38, 44, 0.6);
+                                        border-radius: 16px;
+                                        margin-bottom: 16px;
+                                        border: 1px solid rgba(29, 185, 84, 0.1);
+                                        transition: all 0.3s ease;
+                                        cursor: pointer;
+                                    """,
+                                    class_="stat-item"
+                                ),
+                                style="""
+                                    display: grid;
+                                    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                                    gap: 20px;
+                                    padding: 20px;
+                                """
+                            ),
+                            class_="content-card hover-card",
+                            style="""
+                                background: rgba(36, 38, 44, 0.95);
+                                border-radius: 16px;
+                                margin-top: 20px;
+                                border: 1px solid rgba(29, 185, 84, 0.1);
+                                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+                            """
+                        ),
+                        # Add custom CSS for hover effects and animations
+                        ui.tags.style("""
+                            .stat-item:hover {
+                                transform: translateY(-5px);
+                                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+                                border-color: rgba(29, 185, 84, 0.3);
+                                background: rgba(36, 38, 44, 0.8);
+                            }
+                            .stat-item:hover i {
+                                transform: scale(1.1);
+                                background: rgba(29, 185, 84, 0.2);
+                            }
+                            @keyframes fadeInUp {
+                                from {
+                                    opacity: 0;
+                                    transform: translateY(20px);
+                                }
+                                to {
+                                    opacity: 1;
+                                    transform: translateY(0);
+                                }
+                            }
+                            .stat-item {
+                                animation: fadeInUp 0.5s ease-out forwards;
+                                animation-delay: calc(var(--animation-order) * 0.1s);
+                            }
+                        """),
+                        class_="stats-explained-section"
+                    ),
                     class_="content-card"
                 ),
                 class_="main-content"

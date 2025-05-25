@@ -201,6 +201,12 @@ def get_effects_css():
         color: #1db954;
     }
     
+    /* Ensure icon animates when the entire button is hovered */
+    .module-btn:hover .hover-icon {
+        transform: scale(1.2) rotate(15deg);
+        color: #1db954;
+    }
+    
     /* Shimmer effect for loading states */
     @keyframes shimmer {
         0% {

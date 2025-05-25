@@ -321,7 +321,7 @@ def server_individual_stock(input, output, session):
         if not data.empty:
             # Set style for modern dark theme
             plt.style.use('dark_background')
-            fig, ax = plt.subplots(figsize=(12, 6))
+            fig, ax = plt.subplots(figsize=(12, 5))
             
             # Enhanced background with gradient
             bg_gradient = np.linspace(0, 1, 2)
@@ -336,27 +336,16 @@ def server_individual_stock(input, output, session):
             # Add stylish grid
             ax.grid(True, linestyle='--', alpha=0.1, color='#4b5563')
             
-            # Plot main volatility line with glow effect
-            line = ax.plot(data['time_id'], data['volatility'],
-                         label=f"Volatility for Stock ID {input.stock_id()}",
-                         color='#1db954', linewidth=2, alpha=0.9, zorder=3)
-            
-            # Add glow effect to the line
-            glow_line = ax.plot(data['time_id'], data['volatility'],
-                              color='#1db954', linewidth=4, alpha=0.3, zorder=2)
-            
-            # Create gradient fill under the curve
-            gradient_colors = np.zeros((2, 3, 4))
-            gradient_colors[0] = np.array([29/255, 185/255, 84/255, 0.3])  # Top color
-            gradient_colors[1] = np.array([29/255, 185/255, 84/255, 0.0])  # Bottom color
-            
-            ax.fill_between(data['time_id'], data['volatility'], 0,
-                          color='#1db954', alpha=0.1, zorder=2)
-            
-            # Add interactive scatter points
-            scatter = ax.scatter(data['time_id'], data['volatility'],
-                               color='#a78bfa', s=40, alpha=0.6, zorder=4,
-                               marker='o', edgecolor='white', linewidth=0.5)
+            # Plot volatility as a simple line chart (white line)
+            ax.plot(
+                data['time_id'],
+                data['volatility'],
+                label='Actual Values',
+                color='white',
+                linewidth=2.5,
+                alpha=0.9,
+                zorder=3,
+            )
             
             # Add mean line with enhanced styling
             mean_vol = data['volatility'].mean()
@@ -392,7 +381,7 @@ def server_individual_stock(input, output, session):
                                pad=20, path_effects=[withStroke(linewidth=3, foreground='#1f2937')])
             
             # Style the axis with modern look
-            ax.tick_params(axis='x', colors='#a78bfa', labelsize=10, length=6)
+            ax.tick_params(axis='x', colors='#a78bfa', labelsize=10, length=6, rotation=45)
             ax.tick_params(axis='y', colors='#a78bfa', labelsize=10, length=6)
             
             # Enhanced spines
@@ -408,21 +397,8 @@ def server_individual_stock(input, output, session):
             legend.get_frame().set_boxstyle('round,pad=0.5')
             legend.get_frame().set_linewidth(1)
             
-            # Add interactive tooltips
-            cursor = mplcursors.cursor(scatter, hover=True)
-            
-            @cursor.connect("add")
-            def on_add(sel):
-                point_index = sel.target.index
-                time_id = data['time_id'].iloc[point_index]
-                volatility = data['volatility'].iloc[point_index]
-                sel.annotation.set_text(f'Time ID: {time_id}\nVolatility: {volatility:.6f}')
-                sel.annotation.get_bbox_patch().set(fc='#1f2937', alpha=0.9,
-                                                  ec='#4b5563', boxstyle='round,pad=0.5')
-                sel.annotation.arrow_patch.set(arrowstyle='fancy', fc='#4b5563',
-                                            ec='#4b5563', mutation_scale=10)
-            
             # Adjust layout
+            fig.subplots_adjust(left=0.08, right=0.97, bottom=0.17, top=0.88)
             plt.tight_layout()
             
             return fig
