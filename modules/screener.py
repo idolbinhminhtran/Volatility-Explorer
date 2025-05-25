@@ -179,7 +179,7 @@ def ui_screener():
                 # Logo and title
                 ui.tags.div(
                     ui.tags.div(ui.tags.i(class_="fa fa-search"), class_="module-icon"),
-                    ui.h2("STOCK SCREENER", class_="animated-gradient-text"),
+                    ui.h2("VOLTATRADE", class_="animated-gradient-text"),
                     ui.p("Filter and rank stocks by financial statistics.", class_="module-subtitle"),
                     class_="module-header"
                 ),
@@ -231,6 +231,12 @@ def ui_screener():
                         class_="module-input"
                     ),
                     class_="screener-sidebar"
+                ),
+                
+                # Get Started button with animation
+                ui.tags.div(
+                    ui.tags.a("GET STARTED - RUN THE MODEL", href="?tab=screener", class_="get-started-button"),
+                    class_="get-started-container"
                 ),
                 
                 class_="sidebar-card"

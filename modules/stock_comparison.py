@@ -617,7 +617,6 @@ def server_stock_comparison(input, output, session):
         if pred_vol is not None:
             pred_vol_html = f"""
             <p><b>Predicted Volatility:</b> <span class="highlight-value prediction">{pred_vol:.6f}</span></p>
-            <p><b>Model Accuracy:</b> <span class="highlight-value">{(1 - abs(average_vol - pred_vol) / pred_vol) * 100:.2f}%</span></p>
             """
         
         return ui.HTML(
@@ -708,7 +707,6 @@ def server_stock_comparison(input, output, session):
         if pred_vol is not None:
             pred_vol_html = f"""
             <p><b>Predicted Volatility:</b> <span class="highlight-value prediction">{pred_vol:.6f}</span></p>
-            <p><b>Model Accuracy:</b> <span class="highlight-value">{(1 - abs(average_vol - pred_vol) / pred_vol) * 100:.2f}%</span></p>
             """
         
         return ui.HTML(
@@ -753,7 +751,6 @@ def server_stock_comparison(input, output, session):
         if pred_vol is not None:
             pred_vol_html = f"""
             <p><b>Predicted Volatility:</b> <span class="highlight-value prediction">{pred_vol:.6f}</span></p>
-            <p><b>Model Accuracy:</b> <span class="highlight-value">{(1 - abs(average_vol - pred_vol) / pred_vol) * 100:.2f}%</span></p>
             """
         
         return ui.HTML(

@@ -202,7 +202,7 @@ def home_content_ui():
         ui.tags.script(interactive_js),
         ui.div(
             ui.div(
-                ui.h1("Volatility Explorer", class_="dashboard-title"),
+                ui.h1("VoltaTrade", class_="dashboard-title"),
                 ui.p("Interactive Financial Data Analysis & Visualization", class_="dashboard-subtitle"),
                 class_="dashboard-header"
             ),
@@ -254,9 +254,9 @@ def home_content_ui():
             
             # Welcome Section
             ui.div(
-                ui.h2("Welcome to Volatility Explorer", class_="content-title"),
+                ui.h2("Welcome to VoltaTrade", class_="content-title"),
                 ui.p("""
-                Volatility Explorer is a powerful tool for analyzing stock market volatility and financial metrics. 
+                VoltaTrade is a powerful tool for analyzing stock market volatility and financial metrics. 
                 Use the navigation menu above to access different modules, or click on the cards to jump straight to a specific feature.
                 """, class_="content-subtitle"),
                 class_="content-header"
