@@ -1476,7 +1476,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         "Root Mean Square Percentage Error expresses average error as a percentage of true value.",
                         class_="info-card-content"
                     ),
-                    ui.tags.div("33.25%", class_="metric-value"),
+                    ui.tags.div("37%", class_="metric-value"),
                     class_="info-card"
                 ),
                 ui.tags.div(
