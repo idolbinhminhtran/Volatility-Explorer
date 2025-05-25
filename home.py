@@ -221,15 +221,6 @@ def server(input, output, session):
     @output
     @render.ui
     def topbar_ui():
-        icon_class = "fa fa-sun" if dark_mode() else "fa fa-moon"
-        anim_class = "topbar-darkmode animated" if darkmode_anim() else "topbar-darkmode"
-        # Build notification bell with badge
-        notif_count = len(notifications())
-        bell_icon = ui.tags.span(
-            ui.tags.i(class_="fa fa-bell"),
-            ui.tags.span(str(notif_count), class_="notification-badge") if notif_count else None,
-            style="position:relative;display:inline-flex;align-items:center;"
-        )
         return ui.tags.div(
             ui.tags.div(
                 ui.tags.button(
@@ -241,17 +232,11 @@ def server(input, output, session):
                 ui.tags.span("STOCK SCREENING", class_="topbar-title"),
                 class_="topbar-left"
             ),
-                ui.tags.div(
+            ui.tags.div(
                 ui.tags.span(
                     ui.tags.i(class_="fa fa-clock"),
                     "Last updated: May 12, 2025 09:30 EST",
                     class_="topbar-updated" 
-                ),
-                ui.input_action_button("toggle_darkmode", ui.tags.i(class_=icon_class), class_=anim_class, aria_label="Toggle dark mode"),
-                ui.input_action_button("toggle_notifications", bell_icon, class_="topbar-icon-btn", aria_label="Notifications"),
-                ui.tags.button(
-                    ui.tags.i(class_="fa fa-cog"),
-                    class_="topbar-icon-btn"
                 ),
                 class_="topbar-right"
             ),
@@ -344,7 +329,6 @@ def server(input, output, session):
         return ui.tags.div(
             ui.output_ui("topbar_ui"),
             ui.output_ui("dashboard_container"),
-            ui.output_ui("notifications_ui"),
             class_=class_name
         )
 
@@ -810,6 +794,7 @@ def server(input, output, session):
         .summary-card-overview .info-icon:hover {
             color: #ffffff;
         }
+        /* Custom tooltip CSS block removed – rely on global JS tooltip handler */
         """
         
         return ui.TagList(
@@ -869,7 +854,7 @@ def server(input, output, session):
                                         ui.tags.div(
                                             [
                                                 "Average Forecast Error",
-                                                ui.tags.i(class_="fa fa-info-circle info-icon", tabindex="0", **{"data-tooltip": "How much, on average, the model's predictions differ from the actual volatility. Lower is better."})
+                                                ui.tags.i(class_="fa fa-info-circle info-icon", tabindex="0", **{"data-tooltip": "The average percentage difference between predicted and actual volatility values. A positive value of +9% indicates our model tends to predict slightly higher than actual values, showing a conservative approach to risk assessment. This bias helps ensure we don't underestimate potential market volatility."})
                                             ],
                                             class_="summary-card-title"
                                         ),
@@ -882,26 +867,13 @@ def server(input, output, session):
                                 ui.tags.div(
                                     ui.tags.div(
                                         ui.tags.div(
-                                            ui.tags.span("Root Mean Square Percentage Error", class_="card-title-text"),
-                                            ui.tags.i(class_="fa fa-info-circle info-icon", tabindex="0", **{"data-tooltip": "Shows the average size of prediction errors as a percentage. Lower means more accurate predictions."}),
-                                            class_="summary-card-title"
-                                        ),
-                                        ui.tags.div("33%", class_="summary-card-value"),
-                                        class_="summary-card-content"
-                                    ),
-                                    ui.tags.div(ui.tags.i(class_="fa fa-wave-square"), class_="summary-card-icon blue"),
-                                    class_="summary-card-overview rmspe-card"
-                                ),
-                                ui.tags.div(
-                                    ui.tags.div(
-                                        ui.tags.div(
                                             [
                                                 "Model Confidence",
-                                                ui.tags.i(class_="fa fa-info-circle info-icon", tabindex="0", **{"data-tooltip": "How sure the model is about its predictions. Higher confidence means the model is more certain."})
+                                                ui.tags.i(class_="fa fa-info-circle info-icon", tabindex="0", **{"data-tooltip": "Represents the model's certainty in its predictions based on historical data patterns and current market conditions. A 63% confidence level indicates reliable performance, derived from consistent market patterns and stable correlations between stocks. This metric helps users gauge the trustworthiness of predictions in different market scenarios."})
                                             ],
                                             class_="summary-card-title"
                                         ),
-                                        ui.tags.div("67%", class_="summary-card-value"),
+                                        ui.tags.div("63%", class_="summary-card-value"),
                                         class_="summary-card-content"
                                     ),
                                     ui.tags.div(ui.tags.i(class_="fa fa-chart-line"), class_="summary-card-icon purple"),
@@ -911,15 +883,15 @@ def server(input, output, session):
                                     ui.tags.div(
                                         ui.tags.div(
                                             [
-                                                "Last Training",
-                                                ui.tags.i(class_="fa fa-info-circle info-icon", tabindex="0", **{"data-tooltip": "How recently the model was updated with new data. More recent training means fresher insights."})
+                                                "Root Mean Square Percentage Error",
+                                                ui.tags.i(class_="fa fa-info-circle info-icon", tabindex="0", **{"data-tooltip": "A sophisticated accuracy metric that measures the model's prediction precision. The 37% value indicates that our typical prediction error is just over one-third of the actual value. This metric is particularly sensitive to large errors, ensuring our model maintains reliability even during high volatility periods. For financial volatility prediction, values under 40% are considered acceptable performance."})
                                             ],
                                             class_="summary-card-title"
                                         ),
-                                        ui.tags.div("2h ago", class_="summary-card-value"),
+                                        ui.tags.div("37%", class_="summary-card-value"),
                                         class_="summary-card-content"
                                     ),
-                                    ui.tags.div(ui.tags.i(class_="fa fa-calendar"), class_="summary-card-icon yellow"),
+                                    ui.tags.div(ui.tags.i(class_="fa fa-wave-square"), class_="summary-card-icon blue"),
                                     class_="summary-card-overview"
                                 ),
                             ],
