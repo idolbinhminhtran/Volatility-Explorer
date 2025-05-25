@@ -229,7 +229,7 @@ def server(input, output, session):
                     class_="sidebar-toggle-btn"
                 ),
                 ui.tags.i(class_="fa fa-chart-pie", style="font-size:1.5rem;color:var(--primary);"),
-                ui.tags.span("STOCK SCREENING", class_="topbar-title"),
+                ui.tags.span("VOLTATRADE", class_="topbar-title"),
                 class_="topbar-left"
             ),
             ui.tags.div(
@@ -278,8 +278,8 @@ def server(input, output, session):
             # Logo section
             ui.tags.div(
                 ui.tags.i(class_="fa fa-chart-pie logo-icon"),
-                ui.tags.div("Volatility", class_="logo-text-primary"),
-                ui.tags.div("Explorer", class_="logo-text-secondary"),
+                ui.tags.div("Volta", class_="logo-text-primary"),
+                ui.tags.div("Trade", class_="logo-text-secondary"),
                 class_="sidebar-logo"
             ),
             
@@ -802,7 +802,7 @@ def server(input, output, session):
             ui.tags.div(
                 # Hero section with animated effects
                 ui.tags.div(
-                    ui.tags.h1("STOCK SCREENER", class_="hero-title"),
+                    ui.tags.h1("VOLTATRADE", class_="hero-title"),
                     ui.tags.p("A powerful tool for analyzing stock market volatility patterns, predicting future price movements, and making smarter trading decisions.", class_="hero-subtitle"),
                     class_="hero-container"
                 ),
@@ -838,7 +838,7 @@ def server(input, output, session):
                 
                 # Get Started button with animation
                 ui.tags.div(
-                    ui.tags.a("GET STARTED", href="?tab=screener", class_="get-started-button"),
+                    ui.tags.a("GET STARTED - RUN THE MODEL", href="?tab=screener", class_="get-started-button"),
                     class_="get-started-container"
                 ),
                 
@@ -1112,7 +1112,7 @@ def ui_dashboard():
     return ui.TagList(
         ui.tags.style(custom_css),
         ui.tags.div(
-            ui.tags.h1("Volatility Explorer Dashboard", 
+            ui.tags.h1("VoltaTrade Dashboard", 
                      style="color:#1db954;font-size:2rem;margin-bottom:1.5rem;"),
             
             ui.tags.div(

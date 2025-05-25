@@ -390,7 +390,7 @@ def ui_portfolio_tracker():
                 ui.input_action_button("add_to_portfolio", "Add to Portfolio", class_="module-btn"),
                 
                 # Current Portfolio
-                ui.h4("Your Portfolio"),
+                # ui.h4("Your Portfolio"),
                 ui.tags.div(id="portfolio_container", class_="portfolio-selection"),
                 ui.tags.div(
                     ui.input_text("portfolio", "", "[]"),
@@ -754,7 +754,6 @@ You are a financial analyst AI. Given the following portfolio table, provide a b
             <div class="insight-card model-predictions">
                 <div class="insight-title">Volatility Predictions</div>
                 <p>Portfolio Average Predicted Volatility: <span class="value-highlight">{avg_pred_vol:.6f}</span></p>
-                <p>Model Accuracy: <span class="value-highlight">{(1-avg_pred_error)*100:.2f}%</span></p>
                 <p>Potential Daily Swing: <span class="value-highlight">±{total_pred_change:,.2f}</span></p>
                 <div class="insight-explanation">
                     <p>Stock <span class="stock-highlight">{most_underpredicted}</span> shows higher volatility than predicted, 

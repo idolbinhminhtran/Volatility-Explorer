@@ -319,7 +319,7 @@ app_ui = ui.page_fluid(
     ui.tags.div(
         ui.tags.a(
             ui.tags.i(class_="fa fa-chart-line logo-icon", style="margin-right: 8px;"),
-            "Volatility Explorer",
+            "VoltaTrade",
             href="?tab=dashboard",
             class_="logo"
         ),
@@ -359,8 +359,8 @@ app_ui = ui.page_fluid(
         # Logo / Branding
         ui.tags.div(
             ui.tags.i(class_="fa fa-chart-pie logo-icon"),
-            ui.tags.div("Volatility", class_="logo-text-primary"),
-            ui.tags.div("Explorer", class_="logo-text-secondary"),
+            ui.tags.div("Volta", class_="logo-text-primary"),
+            ui.tags.div("Trade", class_="logo-text-secondary"),
             class_="sidebar-logo"
         ),
         # Navigation items
