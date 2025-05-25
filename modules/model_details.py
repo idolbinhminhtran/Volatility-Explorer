@@ -23,7 +23,6 @@ MODELS_DIR = os.path.join(_project_dir, 'models')
 MODEL_NAMES = {
     'GAT': 'GAT',
     'PCA_Linear': 'PCA Linear',
-    'EWMA': 'EWMA',
     'LAG1': 'LAG1',
     'HAR_RV': 'HAR-RV',
     'Gradient_Boosting': 'Gradient Boosting',
@@ -35,7 +34,6 @@ MODEL_COLORS = {
     'GAT': '#ff0066',           # Hot Pink (our main model)
     'PCA_Linear': '#1db954',    # Green (underscore variant)
     'PCA Linear': '#1db954',   # Green (display name variant)
-    'EWMA': '#a78bfa',         # Purple
     'LAG1': '#fbbf24',         # Yellow
     'HAR_RV': '#00bcd4',       # Blue (underscore variant)
     'HAR-RV': '#00bcd4',      # Blue (display name variant)
@@ -54,7 +52,6 @@ print(f"Models directory: {MODELS_DIR}")
 MODEL_FILES = {
     'GAT': 'GAT_prediction_panel.csv',
     'PCA Linear': 'PCA_Linear_predictions.csv',
-    'EWMA': 'EWMA_predictions.csv',
     'LAG1': 'LAG1_predictions.csv',
     'HAR-RV': 'HAR_RV_predictions.csv',
     'Gradient Boosting': 'Gradient_Boosting_predictions.csv',
@@ -1341,6 +1338,27 @@ def ui_model_details():
         0% { left: -100%; }
         100% { left: 100%; }
     }
+
+    /* Add this CSS to the custom_css string */
+    .stock-select-input {
+        width: 100%;
+        padding: 0.8rem;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 0.5rem;
+        color: #e0e0e0;
+        margin-bottom: 1rem;
+    }
+
+    .stock-select-input select {
+        width: 100%;
+        background: transparent;
+        color: #e0e0e0;
+        border: none;
+        outline: none;
+        font-size: 1rem;
+        padding: 0.5rem;
+    }
     """
     custom_js = """
 window.togglePanel = function(id) {
@@ -1502,134 +1520,167 @@ document.addEventListener('DOMContentLoaded', function() {
                 "model_comparison",
                 "Model Comparison",
                 ui.tags.div(
+                    # Header section with description and visual elements
                     ui.tags.div(
-                        "Compare model predictions across stocks and time periods",
-                        class_="model-comparison-subtitle",
-                        style="color: #e0e0e0; font-size: 1.1rem; margin-bottom: 1.5rem; text-align: center;"
+                        ui.tags.div(
+                            ui.tags.i(class_="fa fa-chart-bar", style="color: #1db954; font-size: 1.8rem;"),
+                            ui.tags.h2(
+                                "Compare Model Performance",
+                                style="color: #e0e0e0; font-size: 1.6rem; margin: 0 0 0 1rem; font-weight: 600;"
+                            ),
+                            style="display: flex; align-items: center; margin-bottom: 1rem;"
+                        ),
+                        ui.tags.p(
+                            "Compare predictions and performance metrics across different volatility forecasting models",
+                            style="color: #a0a0a0; font-size: 1.1rem; margin: 0 0 2rem 0; text-align: center;"
+                        ),
+                        style="text-align: center; padding: 1.5rem; background: rgba(29, 185, 84, 0.1); border-radius: 1rem; margin-bottom: 2rem;"
                     ),
-                    # Controls Container
+                    
+                    # Controls Container with modern grid layout
                     ui.tags.div(
                         # Left Panel - Stock and Time Selection
                         ui.tags.div(
-                            # Stock Selection
+                            # Stock Selection Card
                             ui.tags.div(
                                 ui.tags.div(
                                     ui.tags.i(class_="fa fa-chart-line", style="color: #1db954; font-size: 1.2rem;"),
-                                    ui.tags.span("Stock Selection", style="margin-left: 0.5rem; font-size: 1.2rem; font-weight: 600; color: #a78bfa;"),
+                                    ui.tags.span("Stock Selection", style="margin-left: 0.5rem; font-size: 1.2rem; font-weight: 600; color: #e0e0e0;"),
                                     style="display: flex; align-items: center; margin-bottom: 1rem;"
                                 ),
-                                ui.input_select(
-                                    "compare_stock_id", "",
-                                    choices={sid: f"Stock {sid}" for sid in stock_ids},
-                                    selected="2",
-                                    width="100%"
+                                ui.tags.div(
+                                    ui.input_select(
+                                        "compare_stock_id", "",
+                                        choices={sid: f"Stock {sid}" for sid in stock_ids},
+                                        selected="2",
+                                        width="100%"
+                                    ),
+                                    class_="stock-select-input"
                                 ),
-                                style="margin-bottom: 2rem; background: rgba(36, 38, 44, 0.6); padding: 1rem; border-radius: 0.8rem;"
+                                style="background: rgba(36, 38, 44, 0.8); padding: 1.5rem; border-radius: 1rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); margin-bottom: 1.5rem;"
                             ),
-                            # Time Range Selection
+                            
+                            # Time Range Selection Card
                             ui.tags.div(
                                 ui.tags.div(
                                     ui.tags.i(class_="fa fa-clock", style="color: #1db954; font-size: 1.2rem;"),
-                                    ui.tags.span("Time Range", style="margin-left: 0.5rem; font-size: 1.2rem; font-weight: 600; color: #a78bfa;"),
+                                    ui.tags.span("Time Range", style="margin-left: 0.5rem; font-size: 1.2rem; font-weight: 600; color: #e0e0e0;"),
                                     style="display: flex; align-items: center; margin-bottom: 1rem;"
                                 ),
-                                ui.input_slider(
-                                    "compare_time_range", "",
-                                    min=TIME_MIN, max=TIME_MAX,
-                                    value=[TIME_MIN, TIME_MAX],
-                                    step=10
+                                ui.tags.div(
+                                    ui.input_slider(
+                                        "compare_time_range", "",
+                                        min=TIME_MIN, max=TIME_MAX,
+                                        value=[TIME_MIN, TIME_MAX],
+                                        step=10
+                                    ),
+                                    style="margin-top: 1rem;"
                                 ),
-                                style="background: rgba(36, 38, 44, 0.6); padding: 1rem; border-radius: 0.8rem;"
+                                style="background: rgba(36, 38, 44, 0.8); padding: 1.5rem; border-radius: 1rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);"
                             ),
-                            style="flex: 1.2; padding-right: 2rem;"
+                            style="flex: 1; padding-right: 2rem;"
                         ),
-                        # Right Panel - Model Selection
+                        
+                        # Right Panel - Model Selection with modern cards
                         ui.tags.div(
                             ui.tags.div(
                                 ui.tags.i(class_="fa fa-brain", style="color: #1db954; font-size: 1.2rem;"),
-                                ui.tags.span("Model Selection", style="margin-left: 0.5rem; font-size: 1.2rem; font-weight: 600; color: #a78bfa;"),
-                                style="display: flex; align-items: center; margin-bottom: 1rem;"
+                                ui.tags.span("Model Selection", style="margin-left: 0.5rem; font-size: 1.2rem; font-weight: 600; color: #e0e0e0;"),
+                                style="display: flex; align-items: center; margin-bottom: 1.5rem;"
                             ),
                             ui.tags.div(
-                                # Main Model (GAT)
+                                # Main Model (GAT) with prominent styling
                                 ui.tags.div(
                                     ui.tags.div(
                                         ui.input_checkbox("model_GAT", "GAT", value=True),
                                         ui.tags.div(
                                             "Graph Attention Network",
-                                            style="font-size: 0.8rem; color: #666; margin-top: 0.2rem;"
+                                            style="font-size: 0.9rem; color: #a0a0a0; margin-top: 0.2rem;"
                                         ),
-                                        style=f"margin-bottom: 1rem; color: {MODEL_COLORS['GAT']}; font-weight: 700; font-size: 1.1rem; padding: 0.8rem; background: rgba(255, 0, 102, 0.1); border-radius: 0.5rem;"
+                                        style=f"padding: 1rem; background: rgba(29, 185, 84, 0.15); border-radius: 0.8rem; margin-bottom: 1.5rem; border: 1px solid rgba(29, 185, 84, 0.3);"
                                     ),
                                 ),
-                                # Divider
+                                
+                                # Model Categories with modern separators
                                 ui.tags.div(
-                                    "Traditional Models",
-                                    style="color: #666; font-size: 0.9rem; margin: 1rem 0; padding-top: 0.5rem; border-top: 1px solid #444;"
-                                ),
-                                # Traditional Models Group
-                                ui.tags.div(
-                                    *[ui.tags.div(
-                                        ui.tags.div(
-                                            ui.input_checkbox(
-                                                f"model_{model_id}", 
-                                                model_name,
-                                                value=True
-                                            ),
+                                    ui.tags.div(
+                                        "Traditional Models",
+                                        style="color: #1db954; font-size: 1rem; font-weight: 600; margin: 1.5rem 0 1rem 0; padding-top: 0.5rem; border-top: 1px solid rgba(255, 255, 255, 0.1);"
+                                    ),
+                                    # Traditional Models Group with hover effects
+                                    ui.tags.div(
+                                        *[ui.tags.div(
                                             ui.tags.div(
-                                                f"RMSE: {MODEL_METRICS.get(model_name, {}).get('RMSE', 'N/A'):.6f}" if model_name in MODEL_METRICS else "",
-                                                style="font-size: 0.75rem; color: #666; margin-top: 0.2rem;"
+                                                ui.input_checkbox(
+                                                    f"model_{model_id}", 
+                                                    model_name,
+                                                    value=True
+                                                ),
                                             ),
-                                        ),
-                                        style=f"margin-bottom: 0.8rem; color: {MODEL_COLORS[model_name]}; font-weight: 500; padding: 0.5rem; border-radius: 0.3rem; background: rgba(36, 38, 44, 0.3);"
-                                    ) for model_id, model_name in [
-                                        ('PCA_Linear', 'PCA Linear'),
-                                        ('EWMA', 'EWMA'),
-                                        ('LAG1', 'LAG1'),
-                                        ('HAR_RV', 'HAR-RV')
-                                    ]],
-                                    style="margin-bottom: 1rem;"
-                                ),
-                                # Divider
-                                ui.tags.div(
-                                    "Machine Learning Models",
-                                    style="color: #666; font-size: 0.9rem; margin: 1rem 0; padding-top: 0.5rem; border-top: 1px solid #444;"
-                                ),
-                                # ML Models Group
-                                ui.tags.div(
-                                    *[ui.tags.div(
-                                        ui.tags.div(
-                                            ui.input_checkbox(
-                                                f"model_{model_id}", 
-                                                model_name,
-                                                value=True
-                                            ),
+                                            style=f"margin-bottom: 0.8rem; padding: 0.8rem; border-radius: 0.6rem; background: rgba(36, 38, 44, 0.6); transition: all 0.3s ease; cursor: pointer; &:hover {{ background: rgba(36, 38, 44, 0.8); }};"
+                                        ) for model_id, model_name in [
+                                            ('PCA_Linear', 'PCA Linear'),
+                                            ('LAG1', 'LAG1'),
+                                            ('HAR_RV', 'HAR-RV')
+                                        ]],
+                                        style="margin-bottom: 1.5rem;"
+                                    ),
+                                    
+                                    # ML Models Section
+                                    ui.tags.div(
+                                        "Machine Learning Models",
+                                        style="color: #1db954; font-size: 1rem; font-weight: 600; margin: 1.5rem 0 1rem 0; padding-top: 0.5rem; border-top: 1px solid rgba(255, 255, 255, 0.1);"
+                                    ),
+                                    ui.tags.div(
+                                        *[ui.tags.div(
                                             ui.tags.div(
-                                                f"RMSE: {MODEL_METRICS.get(model_name, {}).get('RMSE', 'N/A'):.6f}" if model_name in MODEL_METRICS else "",
-                                                style="font-size: 0.75rem; color: #666; margin-top: 0.2rem;"
+                                                ui.input_checkbox(
+                                                    f"model_{model_id}", 
+                                                    model_name,
+                                                    value=True
+                                                ),
                                             ),
-                                        ),
-                                        style=f"margin-bottom: 0.8rem; color: {MODEL_COLORS[model_name]}; font-weight: 500; padding: 0.5rem; border-radius: 0.3rem; background: rgba(36, 38, 44, 0.3);"
-                                    ) for model_id, model_name in [
-                                        ('Gradient_Boosting', 'Gradient Boosting'),
-                                        ('Random_Forest', 'Random Forest'),
-                                        ('Linear', 'Linear')
-                                    ]],
+                                            style=f"margin-bottom: 0.8rem; padding: 0.8rem; border-radius: 0.6rem; background: rgba(36, 38, 44, 0.6); transition: all 0.3s ease; cursor: pointer; &:hover {{ background: rgba(36, 38, 44, 0.8); }};"
+                                        ) for model_id, model_name in [
+                                            ('Gradient_Boosting', 'Gradient Boosting'),
+                                            ('Random_Forest', 'Random Forest'),
+                                            ('Linear', 'Linear')
+                                        ]],
+                                    ),
                                 ),
-                                style="background: rgba(36, 38, 44, 0.6); padding: 1.2rem; border-radius: 0.8rem;"
+                                style="background: rgba(36, 38, 44, 0.8); padding: 1.5rem; border-radius: 1rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);"
                             ),
-                            style="flex: 1; border-left: 1px solid #444; padding-left: 2rem;"
+                            style="flex: 1; border-left: 1px solid rgba(255, 255, 255, 0.1); padding-left: 2rem;"
                         ),
-                        style="padding: 2rem; background: rgba(36, 38, 44, 0.95); border-radius: 1rem; margin-bottom: 1.5rem; display: flex; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);"
+                        style="display: flex; gap: 2rem; margin-bottom: 2rem;"
                     ),
-                    ui.output_plot("model_comparison_plot", width="100%", height="500px"),
-                    ui.tags.div(style="height:1.5rem"),  # small spacer
+                    
+                    # Results Section with modern styling
                     ui.tags.div(
-                        ui.output_table("model_metrics_table"),
-                        style="overflow-x:auto; max-width:100%;"
+                        ui.tags.div(
+                            ui.tags.div(
+                                ui.tags.i(class_="fa fa-chart-line", style="color: #1db954; font-size: 1.2rem;"),
+                                ui.tags.span("Comparison Results", style="margin-left: 0.5rem; font-size: 1.2rem; font-weight: 600; color: #e0e0e0;"),
+                                style="display: flex; align-items: center; margin-bottom: 1.5rem;"
+                            ),
+                            ui.output_plot("model_comparison_plot", width="100%", height="500px"),
+                            style="background: rgba(36, 38, 44, 0.8); padding: 1.5rem; border-radius: 1rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); margin-bottom: 2rem;"
+                        ),
+                        ui.tags.div(
+                            ui.tags.div(
+                                ui.tags.i(class_="fa fa-table", style="color: #1db954; font-size: 1.2rem;"),
+                                ui.tags.span("Performance Metrics", style="margin-left: 0.5rem; font-size: 1.2rem; font-weight: 600; color: #e0e0e0;"),
+                                style="display: flex; align-items: center; margin-bottom: 1.5rem;"
+                            ),
+                            ui.tags.div(
+                                ui.output_table("model_metrics_table"),
+                                style="overflow-x: auto; max-width: 100%;"
+                            ),
+                            style="background: rgba(36, 38, 44, 0.8); padding: 1.5rem; border-radius: 1rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);"
+                        ),
                     ),
                     class_="model-comparison-content",
-                    style="padding: 2rem; background: rgba(36, 38, 44, 0.92); border-radius: 1rem; margin-bottom: 2rem;"
+                    style="padding: 2rem;"
                 )
             ),
             
@@ -1868,7 +1919,6 @@ def server_model_details(input, output, session):
         model_display_names = {
             'GAT': 'GAT',
             'PCA_Linear': 'PCA Linear',
-            'EWMA': 'EWMA',
             'LAG1': 'LAG1',
             'HAR_RV': 'HAR-RV',
             'Gradient_Boosting': 'Gradient Boosting',
