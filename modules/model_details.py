@@ -1934,11 +1934,16 @@ def server_model_details(input, output, session):
             df_filtered = df.loc[df.index.intersection(selected)].reset_index()
             df_filtered['Model'] = df_filtered['Model'].map(lambda x: model_display_names.get(x, x))
 
-        # Format numeric columns
+        # Remove RMSE column entirely
+        if 'RMSE' in df_filtered.columns:
+            df_filtered = df_filtered.drop(columns=['RMSE'])
+
+        # Format numeric columns (skip RMSE since it's removed)
         if not df_filtered.empty:
-            df_filtered['RMSE'] = df_filtered['RMSE'].apply(lambda x: f"{float(x):.6f}")
-            df_filtered['QLIKE'] = df_filtered['QLIKE'].apply(lambda x: f"{float(x):.4f}")
-            df_filtered['RMPSE'] = df_filtered['RMPSE'].apply(lambda x: f"{float(x):.2f}")
+            if 'QLIKE' in df_filtered.columns:
+                df_filtered['QLIKE'] = df_filtered['QLIKE'].apply(lambda x: f"{float(x):.4f}")
+            if 'RMPSE' in df_filtered.columns:
+                df_filtered['RMPSE'] = df_filtered['RMPSE'].apply(lambda x: f"{float(x):.2f}")
 
         # Style the dataframe
         def highlight_gat(row):
