@@ -1,269 +1,387 @@
-# Volatility Explorer 📊
+<div align="center">
 
-An advanced financial volatility modeling and prediction platform built with Python and Shiny. This project implements state-of-the-art machine learning models to predict stock volatility and provides an intuitive web interface for analysis, screening, and portfolio management.
+# 🚀 VoltaTrade
 
-## 🌟 Overview
+### Advanced Volatility Prediction & Trading Analytics Platform
 
-Volatility Explorer combines cutting-edge volatility forecasting models with interactive visualization tools to help traders, researchers, and financial analysts understand and predict market volatility patterns. The platform features a modern, dark-themed UI and supports real-time analysis of multiple stocks.
+[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Shiny](https://img.shields.io/badge/Shiny-1.4.0-green.svg)](https://shiny.rstudio.com/py/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![GAT Model](https://img.shields.io/badge/Best%20Model-GAT-ff0066.svg)](README.md#-gat-model---our-star-performer)
+[![QLIKE Score](https://img.shields.io/badge/QLIKE-0.089-brightgreen.svg)](README.md#-model-performance)
 
-## ✨ Key Features
+<img src="https://img.shields.io/badge/University%20of%20Sydney-DATA3888-red.svg" alt="USYD Course">
 
-### 1. **Multiple Volatility Prediction Models**
-- **GAT (Graph Attention Network)** - Our best performing model with QLIKE: 0.089148
-- **HAR-RV (Heterogeneous Autoregressive - Realized Volatility)** - QLIKE: 0.144863
-- **PCA-Linear** - Dimensionality reduction with linear regression (QLIKE: 0.146002)
-- **Linear Regression** - Baseline model (QLIKE: 0.157675)
-- **LAG1** - Simple lag-based prediction (QLIKE: 0.191133)
-- **Random Forest** - Ensemble tree-based model (QLIKE: 0.271033)
-- **Gradient Boosting** - Advanced ensemble method (QLIKE: 0.393428)
+---
 
-### 2. **Interactive Dashboard Modules**
-- **Stock Screener**: Filter and discover stocks based on volatility metrics
-- **Individual Stock Analysis**: Deep dive into single stock volatility patterns
-- **Stock Comparison**: Compare up to 3 stocks side-by-side
-- **Portfolio Tracker**: Track and analyze portfolio volatility
-- **Model Performance Viewer**: Visualize and compare model predictions
+### 🌟 Where AI Meets Market Volatility 🌟
 
-### 3. **Advanced Analytics**
-- Real-time volatility calculations
-- Prediction vs actual comparisons
-- Model accuracy metrics (QLIKE, MAPE, RMPSE)
-- Interactive time-series visualizations
-- AI-powered insights using OpenAI integration
+*Harness the power of Graph Attention Networks to predict financial volatility with unprecedented accuracy*
 
-## 📈 Model Performance
+[🚀 Get Started](#-quick-start) • [📊 Features](#-key-features) • [🧠 Models](#-model-performance) • [📸 Screenshots](#-screenshots) • [📚 Documentation](#-documentation)
 
-| Model | QLIKE | MAPE | RMPSE |
-|-------|-------|------|-------|
-| GAT | 0.089148 | 45.10 | ~37 |
-| HAR-RV | 0.144863 | 47.41 | 61.62 |
-| PCA-Linear | 0.146002 | 48.89 | 64.01 |
-| Linear | 0.157675 | 58.72 | 76.74 |
-| LAG1 | 0.191133 | 83.90 | 109.38 |
-| Random Forest | 0.271033 | 128.12 | 196.35 |
-| Gradient Boosting | 0.393428 | 204.55 | 316.81 |
+</div>
+
+---
+
+## 📑 Table of Contents
+
+- [✨ Overview](#-overview)
+- [🎯 Key Features](#-key-features)
+- [📊 Model Performance](#-model-performance)
+- [🧠 GAT Model Details](#-gat-model---our-star-performer)
+- [🚀 Quick Start](#-quick-start)
+- [📸 Screenshots](#-screenshots)
+- [📁 Project Structure](#-project-structure)
+- [🔧 Configuration](#-configuration)
+- [📚 Documentation](#-documentation)
+- [🤝 Contributing](#-contributing)
+- [📄 License](#-license)
+
+---
+
+## ✨ Overview
+
+**VoltaTrade** is a cutting-edge financial analytics platform that combines state-of-the-art machine learning with intuitive visualization tools. Built with Python and Shiny, it delivers institutional-grade volatility predictions through an elegant, modern interface.
+
+<div align="center">
+  <img src="https://via.placeholder.com/800x400/1a1b23/1db954?text=VoltaTrade+Dashboard" alt="VoltaTrade Dashboard" width="80%">
+  <p><em>Modern dark-themed interface with real-time volatility analytics</em></p>
+</div>
+
+### 🎯 Why VoltaTrade?
+
+- **🏆 Best-in-Class Performance**: GAT model achieves 59% lower error than traditional methods
+- **🎨 Beautiful UI**: Modern, dark-themed interface with smooth animations
+- **⚡ Real-Time Analysis**: Lightning-fast predictions across multiple assets
+- **🔍 Deep Insights**: AI-powered explanations and network effect visualization
+- **📈 Professional Tools**: Portfolio tracking, screening, and comparison features
+
+---
+
+## 🎯 Key Features
+
+<table>
+<tr>
+<td width="50%">
+
+### 📊 Advanced Analytics
+- **7 Prediction Models** including GAT, HAR-RV, and ML ensembles
+- **Real-time volatility calculations**
+- **AI-powered market insights** via OpenAI integration
+- **Network effect visualization**
+- **Temporal pattern recognition**
+
+</td>
+<td width="50%">
+
+### 🛠️ Professional Tools
+- **📱 Stock Screener** - Filter by volatility metrics
+- **📈 Individual Analysis** - Deep dive into single stocks
+- **⚖️ Comparison Tool** - Analyze up to 3 stocks
+- **💼 Portfolio Tracker** - Monitor portfolio volatility
+- **🧪 Model Lab** - Compare prediction models
+
+</td>
+</tr>
+</table>
+
+---
+
+## 📊 Model Performance
+
+<div align="center">
+
+| Model | QLIKE ↓ | MAPE | RMPSE | Status |
+|:------|:-------:|:----:|:-----:|:------:|
+| 🧠 **GAT** | **0.0891** | 45.10 | ~37 | 🟢 **Best** |
+| 📊 HAR-RV | 0.1449 | 47.41 | 61.62 | 🟢 Good |
+| 🔄 PCA-Linear | 0.1460 | 48.89 | 64.01 | 🟢 Good |
+| 📈 Linear | 0.1577 | 58.72 | 76.74 | 🟡 Baseline |
+| ⏱️ LAG1 | 0.1911 | 83.90 | 109.38 | 🟡 Basic |
+| 🌲 Random Forest | 0.2710 | 128.12 | 196.35 | 🔴 Limited |
+| 🚀 Gradient Boosting | 0.3934 | 204.55 | 316.81 | 🔴 Limited |
+
+<sup>*Lower QLIKE scores indicate better performance. GAT achieves 59% improvement over baseline.*</sup>
+
+</div>
+
+---
 
 ## 🧠 GAT Model - Our Star Performer
 
-### Graph Attention Network (GAT) Architecture
+<div align="center">
+  <img src="https://via.placeholder.com/600x300/1a1b23/ff0066?text=Graph+Attention+Network" alt="GAT Architecture" width="60%">
+</div>
 
-The GAT model is the crown jewel of our volatility prediction system, achieving the best performance with a QLIKE score of 0.089148. This model revolutionizes volatility forecasting by treating the financial market as an interconnected network of assets.
+### 🌟 Why GAT Dominates
 
-### Key Innovations:
+The **Graph Attention Network (GAT)** revolutionizes volatility prediction by treating financial markets as living, breathing networks:
 
-1. **Graph-Based Representation**
-   - Treats each stock as a node in a financial network
-   - Captures complex inter-asset dependencies that traditional models miss
-   - Models how volatility in one asset propagates through the market
+<table>
+<tr>
+<td width="25%" align="center">
 
-2. **Attention Mechanism**
-   - Dynamically weighs connections between stocks based on their historical correlation patterns
-   - Adapts to changing market conditions in real-time
-   - Focuses on the most relevant relationships for each prediction
+### 🕸️ Network Intelligence
+Models stocks as interconnected nodes, capturing spillover effects
 
-3. **Multi-Head Attention**
-   - Uses multiple attention heads to capture different types of relationships
-   - Combines diverse perspectives for more robust predictions
-   - Reduces overfitting and improves generalization
+</td>
+<td width="25%" align="center">
 
-4. **Temporal Feature Integration**
-   - Incorporates historical price patterns and multiple lagged realized volatility values
-   - Captures momentum, mean reversion, and seasonality effects
-   - Uses both short-term and long-term temporal dependencies
+### 🎯 Dynamic Attention
+Focuses on the most relevant relationships in real-time
 
-### Technical Specifications:
+</td>
+<td width="25%" align="center">
 
-- **Input Features**: 
-  - Historical volatility (multiple lags)
-  - Price-based features (returns, spreads)
-  - Market microstructure variables
-  - Cross-asset correlation matrices
+### 🧩 Multi-Head Design
+8 attention heads capture diverse market dynamics
 
-- **Architecture Details**:
-  - Number of attention heads: 8
-  - Hidden dimensions: 128
-  - Number of GAT layers: 3
-  - Dropout rate: 0.3
-  - Learning rate: 0.001 with adaptive scheduling
+</td>
+<td width="25%" align="center">
 
-- **Training Process**:
-  - Temporal train/validation/test split: 80%/10%/10%
-  - Batch size: 32
-  - Training epochs: 200 with early stopping
-  - Loss function: QLIKE (Quasi-likelihood)
+### 📈 Temporal Mastery
+Integrates short & long-term patterns seamlessly
 
-### Performance Advantages:
+</td>
+</tr>
+</table>
 
-- **59% Lower Error** than traditional Linear models (QLIKE: 0.089 vs 0.158)
-- **38% Better** than HAR-RV, the previous state-of-the-art
-- **Consistent Performance** across different market conditions
-- **Interpretable Results** through attention weight visualization
+### 🔬 Technical Excellence
 
-### Why GAT Excels at Volatility Prediction:
+```python
+GAT_CONFIG = {
+    "attention_heads": 8,
+    "hidden_dimensions": 128,
+    "num_layers": 3,
+    "dropout_rate": 0.3,
+    "learning_rate": 0.001,
+    "batch_size": 32,
+    "epochs": 200
+}
+```
 
-1. **Network Effects**: Financial markets are inherently interconnected. GAT captures these relationships naturally.
-2. **Dynamic Adaptation**: The attention mechanism adjusts to changing market regimes automatically.
-3. **Non-linear Patterns**: Unlike linear models, GAT can model complex, non-linear volatility dynamics.
-4. **Spillover Effects**: Captures how volatility shocks propagate through the financial network.
+### 📊 Performance Metrics
+- **59% Lower Error** vs Linear Models
+- **38% Better** than HAR-RV (previous SOTA)
+- **Consistent** across market regimes
+- **Interpretable** via attention weights
 
-## 🚀 Installation
+---
+
+## 🚀 Quick Start
 
 ### Prerequisites
-- Python 3.8+
-- pip package manager
 
-### Setup Instructions
+![Python](https://img.shields.io/badge/Python-3.8%2B-blue?logo=python&logoColor=white)
+![pip](https://img.shields.io/badge/pip-Latest-orange?logo=pypi&logoColor=white)
 
-1. **Clone the repository**
+### Installation
+
 ```bash
-git clone https://github.com/yourusername/Volatility-Explorer.git
-cd Volatility-Explorer
-```
+# 1. Clone the repository
+git clone https://github.com/yourusername/VoltaTrade.git
+cd VoltaTrade
 
-2. **Create a virtual environment**
-```bash
+# 2. Create virtual environment
 python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-```
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
 
-3. **Install dependencies**
-```bash
+# 3. Install dependencies
 pip install -r requirements.txt
-```
 
-4. **Set up environment variables**
-Create a `.env` file in the root directory:
-```env
-OPENAI_API_KEY=your_openai_api_key_here
-```
+# 4. Set up environment variables
+echo "OPENAI_API_KEY=your_api_key_here" > .env
 
-5. **Run the application**
-```bash
+# 5. Launch VoltaTrade! 🚀
 shiny run app.py
 ```
 
-The application will be available at `http://localhost:8000`
+<div align="center">
+  <h3>🌐 Open your browser to <a href="http://localhost:8000">http://localhost:8000</a></h3>
+</div>
+
+---
+
+## 📸 Screenshots
+
+<div align="center">
+<table>
+<tr>
+<td align="center" width="50%">
+<img src="https://via.placeholder.com/400x250/1a1b23/1db954?text=Dashboard" alt="Dashboard" width="100%">
+<b>Dashboard Overview</b>
+</td>
+<td align="center" width="50%">
+<img src="https://via.placeholder.com/400x250/1a1b23/a78bfa?text=Model+Comparison" alt="Model Comparison" width="100%">
+<b>Model Comparison</b>
+</td>
+</tr>
+<tr>
+<td align="center" width="50%">
+<img src="https://via.placeholder.com/400x250/1a1b23/ff0066?text=Stock+Analysis" alt="Stock Analysis" width="100%">
+<b>Individual Stock Analysis</b>
+</td>
+<td align="center" width="50%">
+<img src="https://via.placeholder.com/400x250/1a1b23/4ecdc4?text=Portfolio+Tracker" alt="Portfolio" width="100%">
+<b>Portfolio Tracker</b>
+</td>
+</tr>
+</table>
+</div>
+
+---
 
 ## 📁 Project Structure
 
 ```
-Volatility-Explorer/
+🏗️ VoltaTrade/
 │
-├── app.py                 # Main Shiny application entry point
-├── home.py               # Home dashboard module
-├── requirements.txt      # Python dependencies
-├── .env                  # Environment variables (create this)
-├── .gitignore           # Git ignore file
+├── 📱 app.py                    # Main Shiny application
+├── 🏠 home.py                   # Dashboard module
+├── 📋 requirements.txt          # Python dependencies
+├── 🔐 .env                      # Environment variables
 │
-├── data/                 # Data directory
-│   ├── vol_df.csv       # Historical volatility data
-│   ├── metrics_summary.csv  # Stock metrics summary
-│   └── predicted_realized_vol.csv  # Model predictions
+├── 📊 data/                     # Data directory
+│   ├── vol_df.csv              # Historical volatility
+│   ├── metrics_summary.csv     # Stock metrics
+│   └── predicted_realized_vol.csv
 │
-├── models/              # Model outputs
-│   ├── model_metrics_summary.csv  # Model performance metrics
-│   ├── actual_rv.csv    # Actual realized volatility
+├── 🧠 models/                   # Model outputs
+│   ├── model_metrics_summary.csv
 │   ├── GAT_prediction_panel.csv
-│   ├── HAR_RV_predictions.csv
-│   ├── PCA_Linear_predictions.csv
-│   └── ... (other model predictions)
+│   └── ... (other predictions)
 │
-├── modules/             # Application modules
-│   ├── common_style.py  # Common styling utilities
-│   ├── home.py         # Home page module
-│   ├── individual_stock.py  # Individual stock analysis
-│   ├── model_details.py    # Model comparison and details
-│   ├── portfolio_tracker.py  # Portfolio management
-│   ├── screener.py        # Stock screening functionality
-│   ├── stock_comparison.py  # Multi-stock comparison
-│   └── visual_effects.py   # Visual effects and animations
+├── 🧩 modules/                  # Application modules
+│   ├── 🎨 common_style.py      # Styling utilities
+│   ├── 📊 individual_stock.py  # Stock analysis
+│   ├── 🔬 model_details.py     # Model comparison
+│   ├── 💼 portfolio_tracker.py # Portfolio management
+│   ├── 🔍 screener.py          # Stock screening
+│   └── ⚖️ stock_comparison.py   # Multi-stock comparison
 │
-├── src/                # Source assets
-│   ├── analysis.svg
-│   ├── compare.svg
-│   ├── portfolio.svg
-│   └── screener.svg
-│
-└── www/               # Web assets (if any)
+└── 🎨 src/                      # Visual assets
+    └── ... (SVG icons)
 ```
 
-## 📊 Data Requirements
-
-The application expects the following data files in the `data/` directory:
-
-1. **vol_df.csv**: Time series volatility data with columns:
-   - `time_id`: Time identifier
-   - Stock columns (numeric IDs): Volatility values
-
-2. **metrics_summary.csv**: Stock metrics including:
-   - `stock_id`: Stock identifier
-   - Various metrics (avg_bid_size1, avg_ask_size1, avg_spread, etc.)
-
-3. **predicted_realized_vol.csv**: Model predictions with:
-   - `stock_id`: Stock identifier
-   - `predicted_realized_vol`: Predicted volatility value
+---
 
 ## 🔧 Configuration
 
 ### Environment Variables
-- `OPENAI_API_KEY`: Required for AI-powered insights and analysis
 
-### Customization
-- Modify `modules/common_style.py` to customize the UI theme
-- Add new models by creating prediction CSV files in the `models/` directory
-- Extend functionality by adding new modules in the `modules/` directory
+Create a `.env` file in the root directory:
+
+```env
+# Required for AI-powered insights
+OPENAI_API_KEY=your_openai_api_key_here
+
+# Optional configurations
+DEBUG_MODE=False
+LOG_LEVEL=INFO
+```
+
+### Data Requirements
+
+VoltaTrade expects these CSV files in the `data/` directory:
+
+| File | Description | Required Columns |
+|:-----|:------------|:-----------------|
+| 📊 `vol_df.csv` | Time series volatility | `time_id`, stock columns |
+| 📈 `metrics_summary.csv` | Stock metrics | `stock_id`, metric columns |
+| 🎯 `predicted_realized_vol.csv` | Predictions | `stock_id`, `predicted_realized_vol` |
+
+---
+
+## 📚 Documentation
+
+### 🎓 Research Background
+
+Our GAT implementation is based on cutting-edge research in:
+- **Graph Neural Networks** for financial markets
+- **Attention Mechanisms** in time series prediction
+- **Volatility Spillover** effects in interconnected markets
+
+### 🛠️ API Reference
+
+```python
+# Example: Accessing model predictions
+from modules.model_details import model_data
+
+# Get GAT predictions for a specific stock
+gat_predictions = model_data['GAT']
+stock_43_volatility = gat_predictions[gat_predictions['stock_id'] == '43']
+```
+
+---
 
 ## 🤝 Contributing
 
-We welcome contributions! Please follow these steps:
+We welcome contributions! Here's how you can help:
 
+### 🐛 Found a Bug?
+Open an [issue](https://github.com/yourusername/VoltaTrade/issues) with:
+- Bug description
+- Steps to reproduce
+- Expected vs actual behavior
+
+### 💡 Have an Idea?
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
+2. Create your feature branch (`git checkout -b feature/AmazingIdea`)
+3. Commit changes (`git commit -m 'Add AmazingIdea'`)
+4. Push to branch (`git push origin feature/AmazingIdea`)
 5. Open a Pull Request
 
-### Development Guidelines
-- Follow PEP 8 style guide for Python code
-- Add docstrings to all functions and classes
-- Write unit tests for new features
-- Update documentation as needed
+### 📝 Development Guidelines
+- Follow PEP 8 style guide
+- Add tests for new features
+- Update documentation
+- Keep commits atomic and descriptive
 
-## 📝 Research & Methodology
+---
 
-This project implements several state-of-the-art volatility forecasting models:
+## 🎯 Future Roadmap
 
-- **GAT (Graph Attention Networks)**: Leverages attention mechanisms to capture complex dependencies in financial time series
-- **HAR-RV**: Exploits the heterogeneous nature of market participants operating at different time horizons
-- **PCA-Linear**: Reduces dimensionality while preserving key volatility patterns
+- [ ] 🔌 Real-time market data integration
+- [ ] 🤖 LSTM and Transformer models
+- [ ] 📱 Mobile-responsive design
+- [ ] 🎲 Monte Carlo risk simulations
+- [ ] 📊 Advanced backtesting framework
+- [ ] 🌍 Multi-market support
 
-For detailed methodology and research background, please refer to our technical documentation.
-
-## 🎯 Future Enhancements
-
-- [ ] Real-time data integration with market APIs
-- [ ] Additional ML models (LSTM, Transformer-based)
-- [ ] Risk management tools
-- [ ] Backtesting framework
-- [ ] Mobile-responsive design
-- [ ] Export functionality for reports
+---
 
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+---
 
-- University of Sydney - DATA3888 Course
-- Contributors and maintainers
-- Open-source community for the amazing tools and libraries
+<div align="center">
 
-## 📧 Contact
+### 🙏 Acknowledgments
 
-For questions, suggestions, or collaborations, please reach out to:
-- Email: your.email@example.com
-- GitHub Issues: [Create an issue](https://github.com/yourusername/Volatility-Explorer/issues)
+**University of Sydney** - DATA3888 Course  
+**Open Source Community** - For amazing tools and libraries  
+**Contributors** - For making VoltaTrade better every day
 
 ---
 
-**Note**: This project is for educational and research purposes. Always consult with financial professionals before making investment decisions based on model predictions. 
+### 📧 Get in Touch
+
+<a href="mailto:your.email@example.com">
+  <img src="https://img.shields.io/badge/Email-Contact%20Us-blue?style=for-the-badge&logo=gmail" alt="Email">
+</a>
+<a href="https://github.com/yourusername/VoltaTrade/issues">
+  <img src="https://img.shields.io/badge/GitHub-Report%20Issue-black?style=for-the-badge&logo=github" alt="GitHub Issues">
+</a>
+
+---
+
+**⚠️ Disclaimer**: This project is for educational and research purposes only. Always consult with financial professionals before making investment decisions.
+
+<br>
+
+Made with ❤️ by the VoltaTrade Team
+
+</div> 
