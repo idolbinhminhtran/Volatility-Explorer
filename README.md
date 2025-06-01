@@ -46,7 +46,7 @@
 **VoltaTrade** is a cutting-edge financial analytics platform that combines state-of-the-art machine learning with intuitive visualization tools. Built with Python and Shiny, it delivers institutional-grade volatility predictions through an elegant, modern interface.
 
 <div align="center">
-  <img src = "https://github.com/user-attachments/assets/8b256b4d-ddab-47e9-958a-f6a0799fd844)" alt="VoltaTrade Dashboard" width="80%">
+  <img src="src/VoltaTrade%20dashboard.png" alt="VoltaTrade Dashboard" width="80%">
   <p><em>Modern dark-themed interface with real-time volatility analytics</em></p>
 </div>
 
@@ -112,7 +112,7 @@
 ## 🧠 GAT Model - Our Star Performer
 
 <div align="center">
-  <img src="https://via.placeholder.com/600x300/1a1b23/ff0066?text=Graph+Attention+Network" alt="GAT Architecture" width="60%">
+  <img src="src/ModelDetails.png" alt="GAT Model Details" width="60%">
 </div>
 
 ### 🌟 Why GAT Dominates
@@ -210,21 +210,21 @@ shiny run app.py
 <table>
 <tr>
 <td align="center" width="50%">
-<img src="https://via.placeholder.com/400x250/1a1b23/1db954?text=Dashboard" alt="Dashboard" width="100%">
+<img src="src/VoltaTrade%20dashboard.png" alt="Dashboard" width="100%">
 <b>Dashboard Overview</b>
 </td>
 <td align="center" width="50%">
-<img src="https://via.placeholder.com/400x250/1a1b23/a78bfa?text=Model+Comparison" alt="Model Comparison" width="100%">
-<b>Model Comparison</b>
+<img src="src/StockComparison.png" alt="Model Comparison" width="100%">
+<b>Stock Comparison</b>
 </td>
 </tr>
 <tr>
 <td align="center" width="50%">
-<img src="https://via.placeholder.com/400x250/1a1b23/ff0066?text=Stock+Analysis" alt="Stock Analysis" width="100%">
+<img src="src/IndividualStockAnalysis.png" alt="Stock Analysis" width="100%">
 <b>Individual Stock Analysis</b>
 </td>
 <td align="center" width="50%">
-<img src="https://via.placeholder.com/400x250/1a1b23/4ecdc4?text=Portfolio+Tracker" alt="Portfolio" width="100%">
+<img src="src/PortfolioTracker.png" alt="Portfolio" width="100%">
 <b>Portfolio Tracker</b>
 </td>
 </tr>
