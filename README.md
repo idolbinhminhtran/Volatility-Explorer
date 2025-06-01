@@ -46,7 +46,7 @@
 **VoltaTrade** is a cutting-edge financial analytics platform that combines state-of-the-art machine learning with intuitive visualization tools. Built with Python and Shiny, it delivers institutional-grade volatility predictions through an elegant, modern interface.
 
 <div align="center">
-  <img ![Screenshot 2025-06-01 at 7 14 25 pm](https://github.com/user-attachments/assets/8b256b4d-ddab-47e9-958a-f6a0799fd844) alt="VoltaTrade Dashboard" width="80%">
+  <img src = "https://github.com/user-attachments/assets/8b256b4d-ddab-47e9-958a-f6a0799fd844)" alt="VoltaTrade Dashboard" width="80%">
   <p><em>Modern dark-themed interface with real-time volatility analytics</em></p>
 </div>
 
