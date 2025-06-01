@@ -12,6 +12,12 @@
 
 <img src="https://img.shields.io/badge/University%20of%20Sydney-DATA3888-red.svg" alt="USYD Course">
 
+<br>
+
+### 🎯 [Live Demo](https://binhminhtran-volatility-explorer.share.connect.posit.cloud/) | [Try VoltaTrade Now!](https://binhminhtran-volatility-explorer.share.connect.posit.cloud/)
+
+[![Live Demo](https://img.shields.io/badge/🚀%20Live%20Demo-Try%20Now-ff0066.svg?style=for-the-badge)](https://binhminhtran-volatility-explorer.share.connect.posit.cloud/)
+
 ---
 
 ### 🌟 Where AI Meets Market Volatility 🌟
@@ -35,6 +41,7 @@
 - [📁 Project Structure](#-project-structure)
 - [🔧 Configuration](#-configuration)
 - [📚 Documentation](#-documentation)
+- [📚 References](#-references)
 - [🤝 Contributing](#-contributing)
 - [📄 License](#-license)
 
@@ -313,6 +320,41 @@ from modules.model_details import model_data
 gat_predictions = model_data['GAT']
 stock_43_volatility = gat_predictions[gat_predictions['stock_id'] == '43']
 ```
+
+---
+
+## 📚 References
+
+### Academic Papers & Books
+
+1. **Andersen, T.G., Bollerslev, T., Diebold, F.X. and Labys, P.** (2003). Modeling and forecasting realized volatility. *Econometrica*, 71(2), pp.579–625.
+
+2. **Board of Governors of the Federal Reserve System** (2022). Changes in U.S. family finances from 2019 to 2022: Evidence from the Survey of Consumer Finances. Available at: [https://www.federalreserve.gov/publications/files/scf22.pdf](https://www.federalreserve.gov/publications/files/scf22.pdf) (Accessed: 29 May 2025).
+
+3. **Cont, R.** (2001). Empirical properties of asset returns: stylized facts and statistical issues. *Quantitative Finance*, 1(2), pp.223–236.
+
+4. **Corsi, F.** (2009). A simple approximate long-memory model of realized volatility. *Journal of Financial Econometrics*, 7(2), pp.174–196.
+
+5. **Goodfellow, I., Bengio, Y. and Courville, A.** (2016). *Deep Learning*. MIT Press.
+
+6. **Hull, J.** (2015). *Options, Futures, and Other Derivatives*. 9th ed. Pearson.
+
+7. **Newman, M.** (2010). *Networks: An Introduction*. Oxford University Press.
+
+8. **Velickovic, P., Cucurull, G., Casanova, A., Romero, A., Liò, P. and Bengio, Y.** (2018). Graph Attention Networks. In *International Conference on Learning Representations (ICLR)*.
+
+9. **Zhang, Y., Zhang, Y., Wang, J. and Li, H.** (2022). Stock price movement prediction with graph attention networks. *Expert Systems with Applications*, 191, p.116367.
+
+### Data Sources & Resources
+
+- **Optiver** (2021). Optiver Realized Volatility Prediction Challenge. Available at: [https://www.kaggle.com/competitions/optiver-realized-volatility-prediction](https://www.kaggle.com/competitions/optiver-realized-volatility-prediction) (Accessed: 26 May 2025).
+
+### Additional Resources
+
+- [Log Transformation of Realized Volatility](https://www.sciencedirect.com/science/article/abs/pii/S0304407610000680#:~:text=The%20log%20transformation%20of%20realized,that%20of%20the%20raw%20statistic.)
+- [Mean Absolute Percentage Error (MAPE)](https://en.wikipedia.org/wiki/Mean_absolute_percentage_error)
+- [Model Performance Metrics for Regression Models](https://help.pecan.ai/en/articles/6456388-model-performance-metrics-for-regression-models)
+- [Recovering Time ID Order - Kaggle Notebook](https://www.kaggle.com/code/stassl/recovering-time-id-order/notebook)
 
 ---
 
